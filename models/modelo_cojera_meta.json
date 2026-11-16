@@ -1,0 +1,41 @@
+{
+  "modelo": "Random Forest",
+  "features": [
+    "duracion_zancada_s",
+    "cabeza_mindiff_mm",
+    "cabeza_rom_mm",
+    "cabeza_maxdiff_mm",
+    "cabeza_hr",
+    "cabeza_acc_rms",
+    "cruz_mindiff_mm",
+    "cruz_rom_mm",
+    "cruz_maxdiff_mm",
+    "cruz_hr",
+    "cruz_acc_rms",
+    "sacro_mindiff_mm",
+    "sacro_rom_mm",
+    "sacro_maxdiff_mm",
+    "sacro_hr",
+    "sacro_acc_rms",
+    "tc_izq_mindiff_mm",
+    "tc_izq_rom_mm",
+    "tc_izq_maxdiff_mm",
+    "tc_izq_hr",
+    "tc_izq_acc_rms",
+    "tc_der_mindiff_mm",
+    "tc_der_rom_mm",
+    "tc_der_maxdiff_mm",
+    "tc_der_hr",
+    "tc_der_acc_rms",
+    "hip_hike_diff_mm"
+  ],
+  "caballos_test": [
+    "ant_A",
+    "ant_B",
+    "ant_I",
+    "pos_D",
+    "pos_F"
+  ],
+  "roc_auc_test": 0.7101073932110916,
+  "roc_auc_loho": 0.7089433025981656
+}
