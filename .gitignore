@@ -1,0 +1,17 @@
+# Secretos y entorno
+.env
+*.tfvars
+!terraform.tfvars.example
+# Terraform
+terraform/.terraform/
+terraform/build/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl.bak
+# Datos crudos pesados (se descargan con los scripts)
+data/raw/*.jsonl
+data/external/imu_cojera/
+# Python / Jupyter
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
