@@ -59,20 +59,25 @@ def lambda_handler(event, context):
     max_q = int(os.environ.get("MAX_POR_CONSULTA", "1500"))
     key, hoy, resumen = _api_key(), date.today().isoformat(), {}
     for nombre, q in QUERIES.items():
-        cursor, filas = "*", []
-        while cursor and len(filas) < max_q:
-            params = urllib.parse.urlencode({"filter": f"title_and_abstract.search:{q}", "per-page": 200,
-                                             "cursor": cursor, "select": SELECT})
-            data = _get(f"https://api.openalex.org/works?{params}", key)
-            res = data.get("results", [])
-            if not res:
-                break
-            for w in res:
-                w["_query"] = nombre
-            filas.extend(res)
-            cursor = data["meta"].get("next_cursor")
-        cuerpo = "\n".join(json.dumps(w, ensure_ascii=False) for w in filas)
-        s3.put_object(Bucket=bucket, Key=f"{prefijo}fecha={hoy}/{nombre}.jsonl", Body=cuerpo.encode("utf-8"))
-        resumen[nombre] = len(filas)
+        # Se escribe página por página en /tmp (almacenamiento efímero de Lambda) para no acumular
+        # miles de registros en memoria; luego se sube el archivo completo a S3.
+        ruta, cursor, n = f"/tmp/{nombre}.jsonl", "*", 0
+        with open(ruta, "w", encoding="utf-8") as f:
+            while cursor and n < max_q:
+                params = urllib.parse.urlencode({"filter": f"title_and_abstract.search:{q}", "per-page": 200,
+                                                 "cursor": cursor, "select": SELECT})
+                data = _get(f"https://api.openalex.org/works?{params}", key)
+                res = data.get("results", [])
+                if not res:
+                    break
+                for w in res:
+                    w["_query"] = nombre
+                    f.write(json.dumps(w, ensure_ascii=False) + "\n")
+                n += len(res)
+                cursor = data["meta"].get("next_cursor")
+                del data, res
+        s3.upload_file(ruta, bucket, f"{prefijo}fecha={hoy}/{nombre}.jsonl")
+        os.remove(ruta)
+        resumen[nombre] = n
     print(json.dumps({"fecha": hoy, "registros": resumen}))
     return {"statusCode": 200, "registros": resumen}

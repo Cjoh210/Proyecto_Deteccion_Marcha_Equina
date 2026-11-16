@@ -19,7 +19,7 @@ ODS: **3** (salud y bienestar, enfoque *Una Salud*) y **8** (trabajo decente y c
 | **ML preliminar** (sano vs. cojo) | `notebooks/04_ml_clasificacion_cojera.ipynb` | 6 modelos, Grid/Random Search, validación agrupada por caballo; Random Forest: ROC-AUC 0,71 con caballos no vistos; SHAP |
 | **Perfilamiento de datasets públicos** | `notebooks/05_catalogo_datasets_perfiles.ipynb` | 14 datasets, distancia de Gower + clustering jerárquico; ningún dataset público tiene video de caballos con etiqueta de cojera |
 | **Infraestructura como código (AWS)** | `terraform/` | S3 data lake, Lambda + EventBridge, Glue/Athena, DynamoDB, API Gateway, ECR, CloudWatch/Budgets, réplica DR opcional |
-| **Diagrama y costos** | `docs/figures/arquitectura_aws.png`, `src/cloud/estimacion_costos.py` | ≈ USD 0,13–0,37/mes (académico, prácticamente gratis) y ≈ USD 11–13,5/mes (piloto) |
+| **Diagrama y costos** | `docs/figures/arquitectura_aws.png`, `src/cloud/estimacion_costos.py` | ≈ USD 0,13–0,38/mes (académico, prácticamente gratis) y ≈ USD 11–13,5/mes (piloto) |
 
 ## Estructura
 

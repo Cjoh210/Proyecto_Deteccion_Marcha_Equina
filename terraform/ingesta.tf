@@ -59,7 +59,7 @@ resource "aws_lambda_function" "ingesta" {
   filename         = data.archive_file.ingesta.output_path
   source_code_hash = data.archive_file.ingesta.output_base64sha256
   timeout          = 600
-  memory_size      = 256
+  memory_size      = 512       # 256 MB se quedaba corto con ~1.600 artículos por consulta
   architectures    = ["arm64"] # Graviton: ~20 % más barato por GB-segundo
   environment {
     variables = {
