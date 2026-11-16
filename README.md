@@ -45,7 +45,7 @@ ODS: **3** (salud y bienestar, enfoque *Una Salud*) y **8** (trabajo decente y c
 **Requisitos:** Python 3.11+ y, opcionalmente, Terraform ≥ 1.6 y la CLI de AWS.
 
 ```bash
-git clone <URL_DEL_REPOSITORIO> && cd <repositorio>
+git clone https://github.com/Cjoh210/Proyecto_Deteccion_Marcha_Equina.git && cd Proyecto_Deteccion_Marcha_Equina
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
@@ -67,14 +67,14 @@ cp terraform.tfvars.example terraform.tfvars            # completar valores (no 
 terraform init
 terraform plan
 terraform apply                                          # crea data lake, ingesta, analítica, BD y monitoreo
-# Guía detallada paso a paso: docs/DESPLIEGUE_AWS.md
 
 # Opcional: API de inferencia
 aws ecr get-login-password | docker login --username AWS --password-stdin $(terraform output -raw ecr_inferencia | cut -d/ -f1)
-docker build -t $(terraform output -raw ecr_inferencia):latest ../src/cloud/lambda_inferencia
+docker build --platform linux/amd64 --provenance=false -t $(terraform output -raw ecr_inferencia):latest ../src/cloud/lambda_inferencia
 docker push $(terraform output -raw ecr_inferencia):latest
 aws s3 cp ../models/modelo_cojera.joblib s3://$(terraform output -raw bucket_datalake)/models/
 terraform apply -var desplegar_api_inferencia=true
+curl -X POST "$(terraform output -raw url_api)" -H "Content-Type: application/json" -d @../docs/ejemplo_prediccion.json
 
 terraform destroy                                        # al terminar, para no generar costos
 ```
@@ -91,18 +91,3 @@ terraform destroy                                        # al terminar, para no 
 2. **Los outliers se interpretan, no se borran**: en bibliometría son los trabajos más influyentes y en el IMU son, en buena parte, la señal clínica. Solo se eliminan los artefactos físicamente imposibles (1 % de las zancadas).
 3. **Pruebas estadísticas a nivel de caballo** (Wilcoxon emparejado), no de zancada, para respetar la dependencia de los datos.
 4. **Arquitectura serverless** (Lambda, S3, DynamoDB on-demand): costo casi nulo cuando no hay uso, escalado automático y alta disponibilidad Multi-AZ gestionada por AWS.
-
-## Historial de commits
-
-El repositorio debe mostrar la participación del autor. Sugerencia de commits incrementales:
-
-```bash
-git init && git add src/scraping data/raw/openalex_works_raw.csv && git commit -m "Módulo de scraping OpenAlex"
-git add notebooks/01* notebooks/02* data/processed/articulos* data/processed/reglas* && git commit -m "Limpieza, EDA, clustering y reglas del corpus"
-git add src/imu notebooks/03* data/processed/imu* && git commit -m "Extracción de características IMU y perfiles de marcha"
-git add notebooks/04* models data/processed/ml* && git commit -m "Modelo preliminar de clasificación de cojera"
-git add notebooks/05* data/external && git commit -m "Catálogo y perfilamiento de datasets"
-git add terraform src/cloud docs && git commit -m "Infraestructura AWS con Terraform, diagrama y costos"
-git add . && git commit -m "README, requisitos y pipeline reproducible"
-git branch -M main && git remote add origin <URL> && git push -u origin main
-```
