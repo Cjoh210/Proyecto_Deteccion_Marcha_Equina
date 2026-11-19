@@ -15,3 +15,6 @@ data/external/imu_cojera/
 __pycache__/
 .ipynb_checkpoints/
 *.pyc
+
+# Salidas de pruebas locales de la Lambda
+terraform/respuesta.json
