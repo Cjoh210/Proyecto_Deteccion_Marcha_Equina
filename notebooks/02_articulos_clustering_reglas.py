@@ -86,6 +86,7 @@ for ax, col, t in zip(axes, ["inercia", "silhouette", "calinski", "davies_bouldi
                       ["Codo (inercia ↓)", "Silhouette ↑", "Calinski-Harabasz ↑", "Davies-Bouldin ↓"]):
     ax.plot(res["k"], res[col], "o-"); ax.set_title(t); ax.set_xlabel("k")
 plt.tight_layout(); plt.savefig(FIG / "art_kmeans_seleccion_k.png"); plt.show()
+res.to_csv(OUT / "kmeans_seleccion_k.csv", index=False)
 res.round(3)
 
 # %% [markdown]

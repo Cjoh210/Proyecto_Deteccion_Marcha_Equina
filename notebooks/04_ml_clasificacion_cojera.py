@@ -134,6 +134,7 @@ lr = pipe(modelos["Regresión logística"]).fit(X_tr, y_tr); p = lr.predict_prob
 res_test.append({"modelo": "Regresión logística (base)", "roc_auc": roc_auc_score(y_te, p),
                  "f1": f1_score(y_te, p >= .5), "bal_acc": balanced_accuracy_score(y_te, p >= .5)})
 res_test = pd.DataFrame(res_test).sort_values("roc_auc", ascending=False)
+pd.DataFrame({"y_true": y_te.values, "id_caballo": g_te.values, **probas}).to_csv(OUT / "ml_probabilidades_test.csv", index=False)
 res_test.round(3)
 
 # %%

@@ -17,6 +17,7 @@ ODS: **3** (salud y bienestar, enfoque *Una Salud*) y **8** (trabajo decente y c
 | **Clustering de texto + reglas de asociación** | `notebooks/02_articulos_clustering_reglas.ipynb` | 8 líneas de investigación (K-Means sobre TF-IDF/SVD), 52 reglas FP-Growth, vacío: 175 trabajos caballo+cojera+visión y solo 1 con autores de Colombia |
 | **Dataset IMU de cojera inducida** (22 caballos) | `src/imu/*.py`, `notebooks/03_imu_eda_perfiles.ipynb` | 1.817 zancadas × 27 métricas de simetría; PCA, Isolation Forest, K-Means y clustering jerárquico de perfiles |
 | **ML preliminar** (sano vs. cojo) | `notebooks/04_ml_clasificacion_cojera.ipynb` | 6 modelos, Grid/Random Search, validación agrupada por caballo; Random Forest: ROC-AUC 0,71 con caballos no vistos; SHAP |
+| **Regresión del impacto científico** | `notebooks/06_regresion_impacto_articulos.ipynb` | Lineal, polinomial, Ridge, Lasso y Elastic Net con Grid Search; Lasso identifica qué tipo de trabajo tiene más impacto |
 | **Perfilamiento de datasets públicos** | `notebooks/05_catalogo_datasets_perfiles.ipynb` | 14 datasets, distancia de Gower + clustering jerárquico; ningún dataset público tiene video de caballos con etiqueta de cojera |
 | **Infraestructura como código (AWS)** | `terraform/` | S3 data lake, Lambda + EventBridge, Glue/Athena, DynamoDB, API Gateway, ECR, CloudWatch/Budgets, réplica DR opcional |
 | **Diagrama y costos** | `docs/figures/arquitectura_aws.png`, `src/cloud/estimacion_costos.py` | ≈ USD 0,13–0,38/mes (académico, prácticamente gratis) y ≈ USD 11–13,5/mes (piloto) |
@@ -28,15 +29,17 @@ ODS: **3** (salud y bienestar, enfoque *Una Salud*) y **8** (trabajo decente y c
 │   ├── raw/                 # respuesta de OpenAlex (CSV aplanado; el JSONL se regenera)
 │   ├── processed/           # datasets limpios, resultados de clustering, reglas, ML y costos
 │   └── external/            # catálogo curado de datasets (+ descarga IMU, fuera de git)
-├── notebooks/               # 01–05, cada uno en .ipynb (ejecutado) y .py (formato percent)
+├── notebooks/               # 01–06, cada uno en .ipynb (ejecutado) y .py (formato percent)
 ├── src/
 │   ├── scraping/            # cliente OpenAlex
 │   ├── imu/                 # descarga Dataverse + extracción de características por zancada
 │   ├── cloud/               # Lambdas (ingesta, inferencia + Dockerfile) y estimación de costos
+│   ├── figuras_en.py        # versiones en inglés de las figuras del informe
 │   └── py2nb.py             # convierte los .py en notebooks
 ├── terraform/               # IaC de AWS
 ├── models/                  # modelo final (.joblib) y metadatos
-├── docs/figures/            # todas las figuras del informe
+├── docs/figures/            # todas las figuras (en español)
+├── report/                  # informes IEEE: avance, final en español (final/es) y en inglés (final/en)
 └── run_pipeline.sh          # ejecuta todo de principio a fin
 ```
 

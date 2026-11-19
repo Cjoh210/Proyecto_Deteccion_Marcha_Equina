@@ -32,10 +32,10 @@ FREE = {"lambda_gb_s": 400_000, "lambda_req": 1_000_000, "apigw_req": 1_000_000,
         "cw_logs_gb": 5, "s3_gb": 5}
 
 ESCENARIOS = {
-    "Académico (avance)": dict(s3_std=7.0, s3_glacier=0, s3_put=2_000, ingestas=4, ingesta_s=300, ingesta_gb=0.25,
+    "Académico (avance)": dict(s3_std=7.0, s3_glacier=0, s3_put=2_000, ingestas=4, ingesta_s=300, ingesta_gb=0.5,
                                pred=1_000, pred_s=1.0, pred_gb=1.0, ddb_gb=0.01, athena_q=100, athena_mb=50,
                                ecr_gb=0.5, logs_gb=0.2, dr_gb=0, dr_nuevo_gb=0),
-    "Piloto (50 clínicas)": dict(s3_std=200.0, s3_glacier=500, s3_put=100_000, ingestas=4, ingesta_s=300, ingesta_gb=0.25,
+    "Piloto (50 clínicas)": dict(s3_std=200.0, s3_glacier=500, s3_put=100_000, ingestas=4, ingesta_s=300, ingesta_gb=0.5,
                                  pred=20_000, pred_s=2.0, pred_gb=1.0, ddb_gb=1.0, athena_q=1_000, athena_mb=200,
                                  ecr_gb=0.5, logs_gb=3.0, dr_gb=200, dr_nuevo_gb=20),
 }

@@ -17,7 +17,7 @@ fi
 
 echo "== 4. Notebooks (limpieza, EDA, clustering, reglas, ML, catálogo) =="
 cd notebooks
-for nb in 01_articulos_limpieza_eda 02_articulos_clustering_reglas 03_imu_eda_perfiles 04_ml_clasificacion_cojera 05_catalogo_datasets_perfiles; do
+for nb in 01_articulos_limpieza_eda 02_articulos_clustering_reglas 03_imu_eda_perfiles 04_ml_clasificacion_cojera 05_catalogo_datasets_perfiles 06_regresion_impacto_articulos; do
   echo "   -> $nb"
   jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 "$nb.ipynb"
 done

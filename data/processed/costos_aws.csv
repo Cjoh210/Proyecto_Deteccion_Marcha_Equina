@@ -1,5 +1,5 @@
 servicio,componente,usd_mes,supuesto,escenario,capa_gratuita
-Lambda,Ingesta OpenAlex (arm64),0.00400002,4 ejecuciones × 300 s × 0.25 GB,Académico (avance),False
+Lambda,Ingesta OpenAlex (arm64),0.00800004,4 ejecuciones × 300 s × 0.5 GB,Académico (avance),False
 Lambda,"Inferencia (x86, Docker)",0.0166667,"1,000 pruebas × 1.0 s × 1.0 GB",Académico (avance),False
 Lambda,Solicitudes,0.0002008,"1,004 solicitudes",Académico (avance),False
 API Gateway,HTTP API,0.001,"1,000 solicitudes",Académico (avance),False
@@ -13,7 +13,7 @@ SSM Parameter Store,Clave OpenAlex (SecureString estándar),0.0,Nivel estándar 
 ECR,Imagen de inferencia,0.05,0.5 GB,Académico (avance),False
 CloudWatch,Logs,0.1,0.2 GB,Académico (avance),False
 Glue / Budgets / SNS / EventBridge,"Catálogo, alertas, programación",0.0,"Dentro de cuotas gratuitas (1 M objetos en catálogo, 2 presupuestos, reglas programadas)",Académico (avance),False
-Lambda,Ingesta OpenAlex (arm64),0.0,4 ejecuciones × 300 s × 0.25 GB,Académico (avance),True
+Lambda,Ingesta OpenAlex (arm64),0.0,4 ejecuciones × 300 s × 0.5 GB,Académico (avance),True
 Lambda,"Inferencia (x86, Docker)",0.0,"1,000 pruebas × 1.0 s × 1.0 GB",Académico (avance),True
 Lambda,Solicitudes,0.0,"1,004 solicitudes",Académico (avance),True
 API Gateway,HTTP API,0.0,"1,000 solicitudes",Académico (avance),True
@@ -27,7 +27,7 @@ SSM Parameter Store,Clave OpenAlex (SecureString estándar),0.0,Nivel estándar 
 ECR,Imagen de inferencia,0.05,0.5 GB,Académico (avance),True
 CloudWatch,Logs,0.0,0.2 GB,Académico (avance),True
 Glue / Budgets / SNS / EventBridge,"Catálogo, alertas, programación",0.0,"Dentro de cuotas gratuitas (1 M objetos en catálogo, 2 presupuestos, reglas programadas)",Académico (avance),True
-Lambda,Ingesta OpenAlex (arm64),0.00400002,4 ejecuciones × 300 s × 0.25 GB,Piloto (50 clínicas),False
+Lambda,Ingesta OpenAlex (arm64),0.00800004,4 ejecuciones × 300 s × 0.5 GB,Piloto (50 clínicas),False
 Lambda,"Inferencia (x86, Docker)",0.666668,"20,000 pruebas × 2.0 s × 1.0 GB",Piloto (50 clínicas),False
 Lambda,Solicitudes,0.0040008000000000005,"20,004 solicitudes",Piloto (50 clínicas),False
 API Gateway,HTTP API,0.02,"20,000 solicitudes",Piloto (50 clínicas),False
@@ -41,7 +41,7 @@ SSM Parameter Store,Clave OpenAlex (SecureString estándar),0.0,Nivel estándar 
 ECR,Imagen de inferencia,0.05,0.5 GB,Piloto (50 clínicas),False
 CloudWatch,Logs,1.5,3.0 GB,Piloto (50 clínicas),False
 Glue / Budgets / SNS / EventBridge,"Catálogo, alertas, programación",0.0,"Dentro de cuotas gratuitas (1 M objetos en catálogo, 2 presupuestos, reglas programadas)",Piloto (50 clínicas),False
-Lambda,Ingesta OpenAlex (arm64),0.0,4 ejecuciones × 300 s × 0.25 GB,Piloto (50 clínicas),True
+Lambda,Ingesta OpenAlex (arm64),0.0,4 ejecuciones × 300 s × 0.5 GB,Piloto (50 clínicas),True
 Lambda,"Inferencia (x86, Docker)",0.0,"20,000 pruebas × 2.0 s × 1.0 GB",Piloto (50 clínicas),True
 Lambda,Solicitudes,0.0,"20,004 solicitudes",Piloto (50 clínicas),True
 API Gateway,HTTP API,0.0,"20,000 solicitudes",Piloto (50 clínicas),True

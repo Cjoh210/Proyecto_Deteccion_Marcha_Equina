@@ -36,8 +36,7 @@ def handler(event, context):
         p = modelo.predict_proba(X)[:, 1]
         p_media = float(p.mean())
         salida = {"id_caballo": body.get("id_caballo", "desconocido"), "n_zancadas": int(len(p)),
-                  "probabilidad_cojera": round(p_media, 4), "cojo": p_media >= 0.5,
-                  "nota": "Herramienta de apoyo; no reemplaza el examen veterinario."}
+                  "probabilidad_cojera": round(p_media, 4), "cojo": p_media >= 0.5}
         boto3.resource("dynamodb").Table(os.environ["TABLA"]).put_item(Item={
             "id_caballo": salida["id_caballo"], "timestamp": datetime.now(timezone.utc).isoformat(),
             "probabilidad": Decimal(str(salida["probabilidad_cojera"])), "n_zancadas": salida["n_zancadas"]})
