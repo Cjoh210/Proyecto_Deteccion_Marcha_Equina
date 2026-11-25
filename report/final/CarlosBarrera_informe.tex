@@ -32,7 +32,7 @@ Repositorio: \url{https://github.com/Cjoh210/Proyecto_Deteccion_Marcha_Equina}}}
 \maketitle
 
 \begin{abstract}
-La cojera es el problema de salud más común en los caballos y, cuando es leve, los veterinarios suelen no coincidir en su diagnóstico. Este trabajo construye la base de un sistema de apoyo para detectarla de forma objetiva, que tiene intención de trabajar en etapas futuras con videos. Siguiendo CRISP-DM, se integraron tres fuentes: un corpus de artículos científicos obtenido desde una API, un catálogo de datasets abiertos y señales de sensores de 22 caballos con cojera inducida. La minería de datos mostró un campo que avanza hacia la visión por computador, con poca investigación en caballos y en Colombia, y sin datasets abiertos que combinen video y cojera. Las señales confirmaron que la asimetría del movimiento de la cabeza y la pelvis delata la cojera. Un Random Forest optimizado y validado con caballos no vistos la distinguió mejor que el azar, y SHAP mostró que se apoya en los mismos marcadores que usa la clínica. El sistema se desplegó en AWS con Terraform, sobre una arquitectura sin servidores que cuesta centavos al mes. El proyecto contribuye a los ODS 3 y 8.
+La cojera acostumbra ser el problema de salud más común en caballos, el problema es que su diagnóstico depende totalmente en una evaluación subjetiva. Este trabajo concentra la fase exploratoria de un sistema para detectarla de manera objetiva, así mismo tiene la intención de trabajar en etapas futuras con video. Se siguió la metodología CRISP-DM para procesamiento de información usando artículos científicos, un catálogo de datasets abiertos y señales de sensores de 22 caballos con cojera inducida. El proceso de minería de datos mostró que el campo se proyecta al uso de visión por computadora, por otro lado una falta de investigación en Colombia y de datasets que contengan video y cojera natural. El análisis de señales confirmaron que una asimetría en el movimiento de la cabeza y pelvis del sujeto delatan cojera, demostrado en un modelo validado con datos nuevos para probar generalización. Este sistema completo fue desplegado en AWS usando Terraform, con una arquitectura serverless.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -41,9 +41,9 @@ minería de datos, CRISP-DM, aprendizaje por ensambles, computación en la nube,
 
 \section{Introducción}
 
-La cojera es el motivo de consulta veterinaria más frecuente en los caballos y una de las condiciones más costosas para el sector, por los días de uso perdidos y los tratamientos que exige~\cite{nehs2013,usda1998}. Su diagnóstico se basa sobre todo en observar al animal al trote, y varios estudios muestran que los veterinarios coinciden poco entre sí cuando la cojera es leve~\cite{keegan2010,hammarberg2016}.
+La cojera en los caballos suele ser el primer indicio del deterioro de la salud y una condición ciertamente costosa para el sector, porque se pierde tiempo de uso del animal al requerir reposo y la necesidad de un tratamiento largo y laborioso~\cite{nehs2013,usda1998}. El diagnóstico se basa sobre todo en observar al animal al trote, y varios estudios muestran que los veterinarios coinciden poco entre sí cuando se presenta una cojera leve~\cite{keegan2010,hammarberg2016}.
 
-En Colombia hay cerca de un millón de equinos registrados~\cite{agronegocios2025censo}, y el caballo criollo tiene un valor cultural y económico importante en regiones como los llanos Orientales y Boyacá. Un sistema que estime la cojera a partir de un video del celular pondría una evaluación objetiva al alcance de veterinarios de campo y criadores. Antes de construirlo, este trabajo responde tres preguntas: qué se ha investigado y dónde está el vacío, con qué datos públicos se cuenta y qué señales del movimiento delatan a un caballo cojo. Con esas respuestas se construyó un modelo predictivo y se desplegó en la nube como un servicio completo.
+En Colombia hay cerca de un millón de equinos registrados~\cite{agronegocios2025censo}, y el caballo criollo tiene un valor cultural y económico importante en regiones como los llanos Orientales y Boyacá. Un sistema que estime la cojera a partir de un video del celular establecería un estándar técnico de evaluación del que veterinarios de campo y criadores pueden beneficiarse. Antes de construirlo, este trabajo responde tres preguntas: qué se ha investigado y dónde está el vacío, con qué datos públicos se cuenta y qué señales del movimiento delatan a un caballo cojo. Con esas respuestas se construyó un modelo predictivo y se desplegó en la nube como un servicio completo.
 
 \section{Planteamiento del problema}
 
@@ -66,46 +66,44 @@ El trabajo combina técnicas de minería de datos, aprendizaje automático y com
 \subsection{Conceptos y siglas}
 
 \begin{itemize}
-\item \textbf{CRISP-DM:} metodología estándar de minería de datos con seis fases, desde la comprensión del problema hasta el despliegue~\cite{wirth2000}.
-\item \textbf{EDA:} análisis exploratorio de datos; revisión inicial con estadísticas y gráficas.
-\item \textbf{IQR:} rango intercuartílico; distancia entre el primer y el tercer cuartil, usada para identificar valores atípicos.
-\item \textbf{PCA:} análisis de componentes principales; reduce muchas variables a pocas componentes que conservan la mayor parte de la variación.
-\item \textbf{SVD:} descomposición en valores singulares; reduce una matriz grande a pocas dimensiones.
+\item \textbf{CRISP-DM:} metodología estándar de minería de datos con seis fases, de comprensión del problema al despliegue~\cite{wirth2000}.
+\item \textbf{EDA:} análisis exploratorio de datos con revisión inicial de estadísticas y gráficas.
+\item \textbf{IQR:} rango intercuartílico, es decir, distancia entre el primer y el tercer cuartil.
+\item \textbf{PCA:} análisis de componentes principales para conservar varianza.
+\item \textbf{SVD:} descomposición en valores singulares, reducción de dimensionalidad de matrices.
 \item \textbf{DBSCAN:} algoritmo de agrupamiento basado en densidad que marca los puntos aislados como ruido.
 \item \textbf{Apriori y FP-Growth:} algoritmos que encuentran elementos que aparecen juntos con frecuencia y generan reglas de asociación~\cite{agrawal1994,han2000}.
-\item \textbf{KNN:} clasificador que asigna la clase de los casos más cercanos.
-\item \textbf{SVM:} clasificador que separa las clases con la frontera de mayor margen.
+\item \textbf{KNN:} clasificador para asignar la clase de los casos más cercanos.
+\item \textbf{SVM:} clasificador para separar clases con la frontera de mayor margen.
 \item \textbf{Validación cruzada:} evaluación de un modelo en varias particiones distintas de los datos.
-\item \textbf{Grid Search y Random Search:} búsqueda de hiperparámetros, exhaustiva o aleatoria.
-\item \textbf{ROC-AUC:} área bajo la curva ROC; mide la capacidad del modelo para separar las clases, de 0,5, igual al azar, a 1, perfecta.
+\item \textbf{Grid Search y Random Search:} búsqueda de hiperparámetros.
+\item \textbf{ROC-AUC:} mide la capacidad del modelo para separar las clases, de 0,5, igual al azar, a 1, perfecta.
 \item \textbf{API:} interfaz que permite a otro programa enviar datos al sistema y recibir una respuesta.
 \item \textbf{ODS:} Objetivos de Desarrollo Sostenible de las Naciones Unidas~\cite{un2015}.
 \end{itemize}
 
 \subsection{Asimetría de la marcha}
 
-Al trote, la cabeza y la pelvis suben y bajan dos veces por zancada, una por cada diagonal de patas. En un caballo sano los dos ciclos son casi iguales; cuando una pata duele, el animal descarga peso y el movimiento se vuelve desigual~\cite{keegan2013}. Se mide con la diferencia entre los dos puntos más bajos y entre los dos más altos del desplazamiento vertical en cada zancada:
+Al trote, la cabeza y la pelvis suben y bajan dos veces por zancada. En un caballo sano ambas partes son casi iguales; cuando una pata le duele, el animal descarga peso y el movimiento se vuelve asimétrico~\cite{keegan2013}. Se mide con la diferencia entre los dos puntos más bajos y entre los dos más altos del desplazamiento vertical en cada zancada:
 
 \begin{gather*}
 \mathrm{MinDiff} = z_{\min,1} - z_{\min,2} \\
 \mathrm{MaxDiff} = z_{\max,1} - z_{\max,2}
 \end{gather*}
 
-En la cojera anterior cambia sobre todo la cabeza; en la posterior, el sacro y la diferencia entre caderas. Para comparar a cada caballo sano y cojo se usa la prueba de Wilcoxon emparejada, que no supone normalidad y funciona con pocos individuos~\cite{wilcoxon1945}.
-
 \subsection{Representación y agrupamiento}
 
-Cada resumen se convierte en un vector con TF-IDF, que da más peso a los términos frecuentes en un documento pero raros en el resto del corpus~\cite{salton1988}:
+Cada resumen se convierte en un vector con TF-IDF, que da peso a los términos frecuentes en un documento~\cite{salton1988}:
 
 \[
 \mathrm{tfidf}(t,d) = \mathrm{tf}(t,d)\cdot \log\frac{N}{\mathrm{df}(t)}
 \]
 
-La matriz se reduce con SVD truncada y se agrupa con K-Means, que busca los k centros que minimizan la distancia de cada punto a su grupo~\cite{lloyd1982}. Para el catálogo de datasets, con variables numéricas y categóricas mezcladas, se usa la distancia de Gower, que promedia una diferencia normalizada por variable~\cite{gower1971}. Los atípicos se detectan con Isolation Forest, que aísla los puntos con cortes al azar: los anómalos necesitan menos cortes~\cite{liu2008}.
+La matriz se reduce con SVD y se agrupa con K-Means, que busca los k centros que minimizan la distancia de cada punto a su grupo~\cite{lloyd1982}. Para el catálogo de datasets, con variables numéricas y categóricas mezcladas, se usa la distancia de Gower, que promedia una diferencia normalizada por variable~\cite{gower1971}. Los atípicos son detectados con Isolation Forest, que aísla los puntos con cortes al azar en el muestrario~\cite{liu2008}.
 
 \subsection{Ensambles e interpretabilidad}
 
-Random Forest promedia muchos árboles entrenados con muestras y variables distintas, lo que reduce la varianza~\cite{breiman2001}; Gradient Boosting añade árboles en secuencia y cada uno corrige el error del anterior~\cite{friedman2001}. Para explicar las predicciones se usa SHAP, que reparte cada predicción entre las variables según su aporte marginal promedio, el valor de Shapley~\cite{lundberg2017}:
+Random Forest promedia muchos árboles entrenados con muestras y variables distintas, de manera que reduce la varianza~\cite{breiman2001}; Gradient Boosting añade árboles en las iteraciones para corregir el error del anterior~\cite{friedman2001}, y para explicar las predicciones se usa \textbf{SHAP}, que reparte las predicciones entre las variables según el aporte marginal promedio~\cite{lundberg2017}:
 
 \[
 \phi_i = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!\,(|F|-|S|-1)!}{|F|!}\,\big[f(S \cup \{i\}) - f(S)\big]
@@ -121,11 +119,11 @@ La regularización penaliza los coeficientes grandes para evitar el sobreajuste.
 
 \subsection{Computación sin servidores}
 
-La nube ofrece recursos bajo demanda en distintos modelos de servicio: IaaS, PaaS y SaaS~\cite{mell2011}. En el modelo sin servidores, o FaaS, el código se ejecuta como funciones que se activan con un evento, escalan solas y se cobran por ejecución, lo que conviene a cargas intermitentes. Con infraestructura como código, los recursos se describen en archivos que se pueden versionar y volver a desplegar~\cite{terraform}.
+La nube ofrece recursos bajo demanda en distintos modelos de servicio: IaaS, PaaS y SaaS~\cite{mell2011}. En el modelo sin servidores, el código se ejecuta como funciones que se activan con el evento además de que escalan solas y se cobran por ejecución~\cite{terraform}.
 
 \section{Sistema propuesto}
 
-La Fig. 1 muestra el sistema completo. Las tres fuentes alimentan un data lake en la nube; el pipeline de minería prepara y analiza los datos; un modelo aprende a reconocer la cojera a partir de medidas de simetría de la marcha; y una API entrega las predicciones y las guarda para hacer seguimiento. En la fase de visión por computador, esas mismas medidas se calcularán desde video, de modo que el modelo y la infraestructura construidos aquí se podrán reutilizar y escalar.
+La Fig. 1 muestra el sistema completo. Las tres fuentes van a un data lake en la nube, siguen con un pipeline de minería que prepara y analiza los datos, luego un modelo aprende a reconocer la cojera a partir de medidas de simetría de la marcha sacadas; y una API entrega las predicciones y mantiene un historial para hacer el seguimiento.
 
 \begin{figure}[!htb]
 \centering
@@ -145,17 +143,17 @@ La Fig. 1 muestra el sistema completo. Las tres fuentes alimentan un data lake e
 \draw[->, dashed] (vid.east) -- ++(2mm,0) |- (cv.west);
 \draw[->] (lake) -- (kdd); \draw[->] (kdd) -- (ml); \draw[->, dashed] (cv) -- (ml); \draw[->] (ml) -- (srv);
 \end{tikzpicture}
-\caption{Estructura general del sistema. En gris, los componentes de la fase de visión por computador.}
+\caption{Estructura general del sistema.}
 \label{fig:sistema}
 \end{figure}
 
 \section{Metodología}
 
-La metodología sigue las fases de CRISP-DM~\cite{wirth2000} y está implementada en seis notebooks reproducibles. Esta sección describe cómo se obtuvieron, prepararon y exploraron los datos; las dos secciones siguientes presentan los modelos de aprendizaje automático y la arquitectura en la nube.
+La metodología sigue las fases de CRISP-DM~\cite{wirth2000} y se implementó en seis notebooks. Esta sección describe cómo se obtuvieron, prepararon y exploraron los datos.
 
 \subsection{Adquisición}
 
-\textbf{Web scraping del estado del arte.} Un módulo en Python consulta la API de OpenAlex~\cite{priem2022openalex} con cinco búsquedas temáticas: cojera equina, marcha equina, sensores, visión y pose animal, y cojera con aprendizaje automático en otras especies. Su función en el sistema es construir y mantener actualizada la base de conocimiento que justifica el proyecto. Reunió unos 6.500 registros.
+\textbf{Web scraping del estado del arte.} Un script de Python consultó la API de OpenAlex~\cite{priem2022openalex} con cinco búsquedas temáticas: cojera equina, marcha equina, sensores, visión y pose animal, y cojera con aprendizaje automático en otras especies para así construir y mantener actualizados los recursos del proyecto, con esto, se reunieron 6.472 registros.
 
 \textbf{Catálogo de datasets.} Se documentaron catorce datasets públicos con sus características y el enlace de origen de cada uno.
 
@@ -163,11 +161,11 @@ La metodología sigue las fases de CRISP-DM~\cite{wirth2000} y está implementad
 
 \subsection{Preparación}
 
-En el corpus se fusionaron los artículos repetidos entre búsquedas, se descartaron documentos no científicos, retractados o ajenos al tema y se unificaron las     duplicadas de un mismo trabajo. Quedaron algo más de cuatro mil artículos. Los resúmenes y países faltantes se trataron sin inventar información: el texto se completó con el título y las palabras clave, y el país desconocido se mantuvo como categoría propia.
+En el corpus se fusionaron los artículos repetidos entre búsquedas y también se descartaron documentos no científicos o que no tenían que ver. Quedaron después de la limpieza 4.024 artículos.
 
 \subsection{Ingeniería de características}
 
-Las señales crudas de los sensores, del orden de millones de muestras, no son útiles por sí mismas. Se tomaron los tramos de trote en línea recta, se calculó el desplazamiento vertical de la cabeza, la cruz, el sacro y las caderas, y se dividió la marcha en zancadas. De cada zancada se extrajeron medidas con significado clínico: la diferencia entre los dos puntos más bajos y los dos más altos de cada ciclo, el rango de movimiento, la regularidad del ritmo y la diferencia entre caderas. El resultado es una tabla de unas 1.800 zancadas con 27 variables. Los faltantes de un sensor se imputaron con la mediana del mismo caballo y se eliminaron las pocas zancadas físicamente imposibles. Sobre esta tabla, PCA mostró que varias medidas son redundantes entre sí y que las zancadas sanas y cojas se superponen en buena parte, lo que anticipa la dificultad del problema (Fig. 2).
+Las señales crudas de los sensores, mantenían escalas de millones de muestras que en sí mismas mostraron no ser útiles. Se tomaron las capturas de trote en línea recta, se calculó el desplazamiento vertical de la cabeza, la cruz, el sacro y las caderas, y se dividió la marcha en zancadas con el propósito de estandarizar medidas. De cada zancada se extrajeron medidas que mostraran resultados clínicos reales, de tal manera que quedaron estas variables: la diferencia entre los dos puntos más bajos y los dos más altos de cada ciclo, el rango de movimiento, la regularidad del ritmo y la diferencia entre caderas. De resultado quedó una tabla de 1.817 zancadas con 27 variables. Los faltantes que hubieran se imputaron con la mediana del mismo caballo y se eliminaron las pocas zancadas físicamente imposibles. Sobre esta tabla se aplicó PCA, donde fue evidente que varias medidas son redundantes y que las zancadas sanas y cojas se superponen en una medida considerable, esto anticipa dificultades en el proceso (Fig. 2).
 
 \begin{figure}[!htb]
 \centering
@@ -180,11 +178,11 @@ Las señales crudas de los sensores, del orden de millones de muestras, no son �
 
 El EDA del contenido mostró la evolución temporal, los países, las revistas y el impacto de los artículos. En los sensores, se comparó cada caballo consigo mismo antes y después de la inducción mediante la prueba de Wilcoxon emparejada, que respeta que las zancadas de un mismo animal no son independientes.
 
-Los valores atípicos se interpretaron antes de decidir qué hacer con ellos. En el contenido, los artículos de mayor impacto resultaron ser las herramientas de visión por computador más usadas del área, su frontera tecnológica, así que se conservaron. En los sensores, Isolation Forest mostró que las zancadas anómalas se concentran en los caballos cojos: buena parte de la anomalía es la propia señal clínica. Solo se eliminaron los registros imposibles y el ruido real, articulos que no tenian nada que ver con el estudio (pruebas genéticas).
+Los valores atípicos se interpretaron antes de decidir qué hacer con ellos. En el contenido, los artículos de mayor impacto resultaron ser las herramientas de visión por computador más usadas del área, su frontera tecnológica, así que se conservaron. En los sensores se usó Isolation Forest, esto mostró que las zancadas anómalas se concentran en los caballos cojos, lo que indica que la anomalía es la señal clínica en sí misma, así que solo se eliminaron los registros imposibles y el ruido real como artículos que no tenían nada que ver con el estudio como pruebas genéticas.
 
 \subsection{Minería no supervisada}
 
-Los textos del corpus se representaron con TF-IDF, se redujeron con SVD y se agruparon con K-Means, eligiendo el número de grupos con cuatro métricas internas y comparando el resultado con clustering jerárquico y DBSCAN (Fig. 3). Este último se descartó porque dejaba como ruido casi la mitad de los artículos. Las palabras clave se analizaron con reglas de asociación mediante Apriori y FP-Growth~\cite{agrawal1994,han2000}, que llegaron a los mismos conjuntos frecuentes.
+Los resúmenes de los artículos se representaron con TF-IDF luego reducidos con SVD y se agruparon con K-Means, eligiendo el número de grupos con cuatro métricas internas y comparando el resultado con clustering jerárquico y DBSCAN (Fig. 3). Este último fue descartado porque dejaba como ruido casi la mitad de los artículos. Además, las palabras clave se analizaron con reglas de asociación como Apriori y FP-Growth~\cite{agrawal1994,han2000}, que llegaron a los mismos conjuntos frecuentes, mostrando coherencia en el proceso. Por otro lado, el catálogo de datasets se agrupó con distancia de Gower y clustering jerárquico, de donde salieron cuatro perfiles.
 
 \begin{figure}[!htb]
 \centering
@@ -193,29 +191,27 @@ Los textos del corpus se representaron con TF-IDF, se redujeron con SVD y se agr
 \label{fig:k}
 \end{figure}
 
-El catálogo se agrupó jerárquicamente con la distancia de Gower, apta para variables mixtas, y las zancadas con K-Means y clustering jerárquico para identificar perfiles de movimiento y de caballos.
-
 \section{Modelos de aprendizaje automático}
 
 \subsection{Clasificador de cojera}
 
-El modelo principal clasifica cada zancada como sana o coja. La decisión metodológica central fue \emph{validar siempre con caballos que el modelo no ha visto}: las zancadas de un mismo animal se parecen tanto que mezclarlas entre entrenamiento y prueba haría que el modelo reconociera al caballo y no a la cojera. Por eso se reservaron cinco caballos completos para la prueba final, la selección de modelos se hizo con validación cruzada agrupada por caballo y la robustez se comprobó dejando cada vez un caballo fuera.
+El modelo principal clasifica cada zancada como sana o coja, de tal forma que la decisión se \emph{valide con caballos que el modelo no ha evaluado}, las zancadas de un mismo animal presentan alta similitud por lo que mezclarlas entre entrenamiento y prueba haría que el modelo reconociera al caballo y no a la cojera como tal. Por eso se reservaron cinco caballos completos para la prueba final, la selección de modelos se hizo con validación cruzada agrupada por caballo y la robustez fue comprobada dejando cada vez un caballo fuera.
 
-Todos los modelos comparten un pipeline de imputación, escalado y clasificación, ajustado dentro de cada partición para evitar fugas de información. Se compararon regresión logística, KNN y SVM con los ensembles Random Forest, AdaBoost y Gradient Boosting~\cite{breiman2001}. Los hiperparámetros se optimizaron con Grid Search para Random Forest y Gradient Boosting, y con Random Search para SVM. El modelo final se interpretó con SHAP~\cite{lundberg2017}.
+Todos los modelos comparten un pipeline de imputación, escalado y clasificación, ajustado dentro de cada partición para evitar fugas de información. Se compararon regresión logística, KNN y SVM con los modelos de Random Forest, AdaBoost y Gradient Boosting~\cite{breiman2001}, los hiperparámetros se optimizaron con Grid Search para los modelos mencionados, y se usó también Random Search para SVM. El modelo final pudo interpretarse con SHAP~\cite{lundberg2017}.
 
 \subsection{Regresión del impacto científico}
 
-Como complemento, se modeló el impacto de los artículos, medido como citas por año, a partir de sus características: tema, tipo de documento, colaboración, acceso abierto y perfil temático. Se compararon regresión lineal, polinomial, Ridge, Lasso y Elastic Net~\cite{tibshirani1996,zou2005}, con Grid Search sobre la fuerza de regularización, y un Random Forest como referencia. El objetivo era entender qué tipo de trabajo influye más en el área.
+Como complemento, se modeló el impacto de los artículos, medido como citas por año, a partir de sus características: tema, tipo de documento, colaboración, acceso abierto y perfil temático. Se compararon regresión lineal, polinomial, Ridge, Lasso y Elastic Net~\cite{tibshirani1996,zou2005}, con Grid Search sobre la fuerza de regularización, y un Random Forest para referencia con el objetivo de entender qué tipo de trabajo llega a influir más en el área.
 
 \section{Arquitectura en la nube}
 
 \subsection{Selección y justificación}
 
-Se eligió AWS en un despliegue de nube pública, por su madurez, su documentación y su capa gratuita. El modelo de servicio es principalmente \emph{FaaS} y \emph{PaaS}: funciones Lambda y servicios gestionados en lugar de servidores virtuales. La razón es la naturaleza de la carga, que es intermitente: una ingesta a lo mucho semanal y predicciones esporádicas. Un servidor EC2 cobraría las 24 horas aunque nadie lo usara, mientras que el diseño sin servidores solo genera costo cuando trabaja. Por la misma razón se eligió DynamoDB bajo demanda en lugar de una base de datos relacional siempre encendida.
+Se eligió AWS para hacer un despliegue de nube pública. El modelo de servicio usado es principalmente \emph{FaaS} y \emph{PaaS}, usando funciones Lambda y servicios gestionados, esto por la naturaleza intermitente de la carga, que semanalmente repite el ciclo si está activada. Por la misma razón se eligió DynamoDB bajo demanda.
 
 \subsection{Componentes}
 
-La arquitectura de la Fig. 4 tiene cuatro bloques. En la \emph{ingesta}, EventBridge activa cada semana una Lambda que ejecuta el web scraping, con la clave de la API guardada cifrada. El \emph{data lake} en S3 se organiza en zonas de datos \textbf{crudos}, \textbf{procesados} y \textbf{modelos}, con cifrado, versionado y un ciclo de vida que archiva los datos antiguos. La \emph{analítica} usa Glue y Athena para consultar los datos con SQL directamente sobre S3. La \emph{inferencia} expone una API HTTP que invoca una Lambda empaquetada como imagen Docker con scikit-learn; esta carga el modelo desde S3 y registra cada predicción en DynamoDB, lo que permite seguir la evolución de cada caballo. CloudWatch, alertas por correo y un presupuesto mensual vigilan errores y costos.
+La arquitectura de la Fig. 4 tiene cuatro bloques. En la \emph{ingesta}, EventBridge activa cada semana una Lambda que ejecuta el web scraping, con la clave de la API guardada cifrada. El \emph{data lake} en S3 se organiza en zonas de datos \textbf{crudos}, \textbf{procesados} y \textbf{modelos}, con cifrado y versionado, el ciclo a su vez archiva datos antiguos. La \emph{analítica} usa Glue y Athena para consultar los datos con SQL directamente sobre S3. Para interactuar se usa una API HTTP que activa una Lambda empaquetada como imagen Docker con scikit-learn; esta carga el modelo desde S3 y registra cada predicción en DynamoDB, lo que permite seguir la evolución de cada caballo, también se tiene activado un CloudWatch que envía alertas por correo y un presupuesto mensual para evitar sobrecostos.
 
 \begin{figure}[!htb]
 \centering
@@ -224,13 +220,13 @@ La arquitectura de la Fig. 4 tiene cuatro bloques. En la \emph{ingesta}, EventBr
 \label{fig:aws}
 \end{figure}
 
-\subsection{Escalabilidad, disponibilidad y recuperación}
+\subsection{Escalabilidad y recuperación}
 
-Lambda, API Gateway, S3 y DynamoDB escalan automáticamente con la demanda y operan en varias zonas de disponibilidad, de modo que cumplen el papel del autoescalado y el balanceo de carga sin configurarlos a mano. La API limita las peticiones por segundo para proteger los costos. Para la recuperación ante desastres, S3 conserva versiones de cada archivo, DynamoDB permite restaurar la tabla a cualquier punto de los últimos 35 días, y existe una réplica opcional de los datos en otra región. Como toda la infraestructura está escrita en código, puede recrearse completa en minutos.
+Los servicios usados escalan solos según la demanda y funcionan en varias zonas de disponibilidad, por lo que no fue necesario configurar autoescalado ni balanceo de carga. Para recuperar datos, S3 guarda versiones de cada archivo y DynamoDB se puede restaurar a cualquier punto de los últimos 35 días, además, como todo está en Terraform, la infraestructura se puede volver a crear fácilmente.
 
 \subsection{Infraestructura como código y despliegue}
 
-La infraestructura se escribió en Terraform~\cite{terraform}, cumpliendo el principio de permisos mínimos para cada componente y etiquetas que permiten atribuir los costos al proyecto. Se desplegó en una cuenta real de AWS (Fig. 5). La función de ingesta se ejecutó en la nube y almacenó el mismo corpus obtenido localmente (Fig. 6). En la primera ejecución la función se quedó sin memoria; se corrigió escribiendo los resultados en disco de forma incremental. El incidente muestra el valor de probar el sistema desplegado y no solo el código.
+La infraestructura se escribió en Terraform~\cite{terraform} y fue desplegada en una cuenta personal de AWS (Fig. 5). La función de ingesta se ejecuta en la nube y almacena el mismo corpus obtenido de manera local (Fig. 6). En la primera ejecución la función se quedó sin memoria, lo que fue corregido escribiendo los resultados en disco de forma incremental. El incidente muestra el valor de probar el sistema desplegado y no solo el código.
 
 \begin{figure}[!htb]
 \centering
@@ -249,7 +245,7 @@ La infraestructura se escribió en Terraform~\cite{terraform}, cumpliendo el pri
 
 \subsection{Integración de extremo a extremo}
 
-La Fig. 7 muestra el sistema funcionando completo: una petición con las medidas de cinco zancadas de un caballo llega a la API, la Lambda de inferencia aplica el modelo y responde con la probabilidad de cojera, y la predicción queda registrada en DynamoDB. Este es el flujo que se presenta en la demostración en vivo.
+La Fig. 7 muestra el funcionamiento completo del sistema, tal que una petición con las medidas de cinco zancadas de un caballo llega a la API, la Lambda aplica el modelo y responde con la probabilidad de cojera, y la predicción queda registrada en DynamoDB. 
 
 \begin{figure}[!htb]
 \centering
@@ -263,7 +259,7 @@ La Fig. 7 muestra el sistema funcionando completo: una petición con las medidas
 
 \subsection{Estado del arte}
 
-La producción científica crece de forma sostenida y, en los últimos años, la visión por computador se convirtió en el enfoque dominante frente a los estudios clínicos tradicionales (Fig. 8). El clustering identificó ocho líneas de investigación que separan un bloque clínico más antiguo de un bloque tecnológico más reciente y de mayor impacto, formado por estimación de pose, visión, sensores y detección en bovinos (Fig. 9). Las reglas de asociación mostraron que los métodos de pose animal heredan los de pose humana y que la detección automática de cojera se ha desarrollado sobre todo en vacas lecheras. El vacío es claro: de los trabajos que combinan caballo, cojera y visión por computador, apenas uno tiene autores en Colombia.
+La producción científica crece constantemente y, en los últimos años, la visión por computador tomó la dominancia como enfoque investigativo frente a los estudios clínicos tradicionales (Fig. 8). Al aplicar clustering se identificaron ocho líneas de investigación que separan un grupo clínico antiguo de uno más tecnológico, reciente y con mayor impacto, formado por estimación de pose, visión, sensores y detección en bovinos (Fig. 9). Las reglas de asociación mostraron que los métodos de pose animal  son heredados de los de pose humana y que la detección automática de cojera ha sido desarrollada sobre todo en vacas lecheras. El vacío evidenciado tras la investigación es que, de los trabajos que combinan caballo, cojera y visión por computador, apenas uno tiene autores en Colombia.
 
 \begin{figure}[!htb]
 \centering
@@ -281,7 +277,7 @@ La producción científica crece de forma sostenida y, en los últimos años, la
 
 \subsection{Datasets disponibles}
 
-El catálogo se organizó en cuatro perfiles: captura de movimiento de caballos, sensores con etiqueta de cojera, imágenes de pose y videos con puntos anatómicos. Ningún dataset público combina video de caballos con etiqueta de cojera (Fig. 10). Esto define la estrategia de la fase de visión: aprender a ubicar los puntos anatómicos con Horse-10 o AP-10K, comprobar las trayectorias contra la captura de movimiento de PFERD y aplicar el clasificador de este trabajo.
+El catálogo se organizó en cuatro perfiles: captura de movimiento de caballos, sensores con etiqueta de cojera, imágenes de pose y videos con puntos anatómicos. Ningún dataset público combina video de caballos con etiqueta de cojera (Fig. 10). Esto define la estrategia para una posterior fase de visión: aprender a ubicar los puntos anatómicos con Horse-10 o AP-10K, comprobar las trayectorias contra la captura de movimiento de PFERD y aplicar el clasificador de este trabajo.
 
 \begin{figure}[!htb]
 \centering
@@ -292,16 +288,16 @@ El catálogo se organizó en cuatro perfiles: captura de movimiento de caballos,
 
 \subsection{Señales de la marcha}
 
-Al comparar cada caballo consigo mismo, la cojera anterior casi duplicó la asimetría de la cabeza, mientras que la cojera posterior aumentó la asimetría del sacro y la diferencia entre caderas, con diferencias estadísticamente significativas (Figs. 11 y 12). Es el patrón que describe la clínica: el caballo levanta la cabeza al apoyar una pata delantera dolorida, y la cadera cuando el dolor está atrás. La respuesta varía entre individuos, y algunos caballos son asimétricos incluso sanos. El clustering de caballos lo confirmó: separó en buena medida a los sanos de los cojos, salvo justamente a esos individuos. Por eso un umbral fijo no basta.
+Al comparar cada caballo consigo mismo, la cojera anterior casi duplicó la asimetría de la cabeza, mientras que la cojera posterior aumentó la asimetría del sacro y la diferencia entre caderas, con diferencias estadísticamente significativas (Figs. 11 y 12). Este patrón lo describe la clínica de manera que el caballo levanta la cabeza al apoyar una pata delantera dolorida, y la cadera cuando el dolor está atrás. La respuesta varía entre individuos, y algunos caballos son asimétricos incluso sanos. El clustering de caballos lo confirmó: separó en buena medida a los sanos de los cojos, salvo justamente a esos individuos. Por eso un umbral fijo no cumple con la tarea.
 
-\begin{figure}[!htb]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{imu_pareado_caballos.png}
 \caption{Cambio de la asimetría de cada caballo entre la condición sana y la cojera inducida.}
 \label{fig:pareado}
 \end{figure}
 
-\begin{figure}[!htb]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{imu_boxplots.png}
 \caption{Distribución de las métricas de simetría por zancada en caballos sanos y con cojera inducida, por tipo de cojera.}
@@ -310,9 +306,9 @@ Al comparar cada caballo consigo mismo, la cojera anterior casi duplicó la asim
 
 \subsection{Clasificador de cojera}
 
-La Tabla I resume los resultados. En validación cruzada los modelos quedaron cerca entre sí, y Random Forest fue el mejor ensemble tras la optimización, por lo que se eligió como modelo final por su desempeño, su interpretabilidad exacta con SHAP y su bajo costo de cómputo. Con los cinco caballos de prueba alcanzó un ROC-AUC de 0,71, el mismo valor obtenido dejando cada vez un caballo fuera, y al promediar las zancadas de cada prueba de trote acertó siete de nueve (Fig. 13). Gradient Boosting rindió un poco mejor en la prueba, pero no se eligió, porque el modelo se selecciona con la validación y no mirando el conjunto de prueba. SHAP muestra que el modelo se apoya en la asimetría del sacro, la regularidad del movimiento de la cabeza y la diferencia entre caderas, los mismos marcadores que usa un veterinario (Fig. 14). El desempeño es moderado, como cabe esperar con cojeras leves evaluadas en caballos nuevos, y es una estimación honesta de cómo funcionaría el sistema en la práctica.
+La Tabla I resume los resultados. En validación cruzada los modelos quedaron cerca entre sí, y Random Forest fue el mejor tras la optimización, por lo que se eligió como modelo final por su desempeño, su interpretabilidad exacta con SHAP además que tiene un bajo costo de cómputo. Con los cinco caballos de prueba alcanzó un ROC-AUC de 0,71, el mismo valor obtenido dejando cada vez un caballo fuera, y al promediar las zancadas de cada prueba de trote acertó siete de nueve (Fig. 13). Gradient Boosting rindió un poco mejor en la prueba, pero no se eligió, porque el modelo se selecciona con la validación y no mirando el conjunto de prueba. SHAP muestra que el modelo se apoya en la asimetría del sacro, la regularidad del movimiento de la cabeza y la diferencia entre caderas, los mismos marcadores que usa un veterinario (Fig. 14). El desempeño es moderado, como cabe esperar con cojeras leves evaluadas en caballos nuevos, y es una estimación honesta de cómo funcionaría el sistema en la práctica.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \caption{Clasificación con validación agrupada por caballo (ROC-AUC)}
 \label{tab:ml}
@@ -362,9 +358,9 @@ Los modelos lineales explicaron cerca del 40 \% de la variación del impacto, la
 
 \section{Análisis de costos}
 
-La estimación se hizo con precios de lista de la región us-east-1 para dos escenarios (Tabla II). El escenario académico corresponde al uso actual del proyecto y el piloto proyecta cincuenta clínicas con veinte mil pruebas de trote al mes. El costo académico es prácticamente nulo gracias al diseño sin servidores y a guardar la clave en Parameter Store, que no tiene costo, en lugar de Secrets Manager. En el piloto el principal rubro es el almacenamiento, y la arquitectura escala sin cambios. El costo real, consultado en la consola de facturación de AWS, fue de cero dólares desde el despliegue, porque el uso de estos días quedó cubierto por la capa gratuita de la cuenta. Esto es consistente con la estimación y confirma que la base del sistema puede operar sin costo en un contexto académico.
+La estimación se hizo con precios de lista de la región us-east-1 para dos escenarios (Tabla II). El escenario académico corresponde al uso actual del proyecto y el piloto proyecta cincuenta clínicas con veinte mil pruebas de trote al mes. El costo académico es prácticamente nulo gracias a un diseño sin servidores. En el piloto el principal peso es el almacenamiento, y la arquitectura escala sin cambios. El costo real, consultado en la consola de facturación de AWS, fue de cero dólares desde el despliegue, porque el uso de estos días quedó cubierto por la capa gratuita de la cuenta, lo que es consistente con la estimación y confirma que la base del sistema puede operar sin costo en un contexto académico.
 
-\begin{table}[t]
+\begin{table}[!htb]
 \centering
 \caption{Costo mensual estimado en USD}
 \label{tab:costos}
@@ -385,19 +381,19 @@ Total con capa gratuita & 0,13 & 10,95 \\
 
 \section{Discusión}
 
-Los resultados responden la pregunta de investigación de forma afirmativa, aunque con matices. Las medidas de asimetría de la cabeza y la pelvis, que pueden obtenerse con tecnología accesible, bastan para estimar la probabilidad de cojera en caballos que el modelo no conoce. Además, el modelo se apoya en los mismos marcadores que la literatura clínica asocia con la cojera anterior y posterior~\cite{keegan2013}, lo que indica que aprendió un patrón real y no una particularidad de los datos.
+Los resultados dan respuesta a la pregunta de investigación de manera positiva, aunque mantiene matices. Las medidas de asimetría de la cabeza y la pelvis, que pueden obtenerse con tecnología accesible, bastan para estimar la probabilidad de cojera en caballos que el modelo no conoce. Además, el modelo se apoya en los mismos indicios que la literatura clínica asocia con la cojera anterior y posterior~\cite{keegan2013}, lo que demuestra que aprendió de manera coherente un patrón presente en la naturaleza.
 
-El desempeño moderado tiene tres explicaciones. La cojera inducida fue leve, justo el caso en que los propios veterinarios coinciden poco~\cite{keegan2010,hammarberg2016}. Algunos caballos ya eran asimétricos estando sanos, lo que confunde a cualquier umbral general. Y la validación con caballos no vistos es más exigente que mezclar zancadas de un mismo animal, que habría dado cifras infladas. Por eso el ROC-AUC de 0,71 debe leerse como una estimación honesta del uso real y no como un techo.
+Por otro lado, el desempeño moderado del modelo resultante se debe a que: La cojera inducida fue leve, justo el caso en que los propios veterinarios coinciden poco~\cite{keegan2010,hammarberg2016}, y además algunos caballos demostraron ya ser asimétricos estando sanos, lo que tiende a confundir al umbral general.
 
-La minería del estado del arte y el catálogo de datasets tienen también una implicación práctica: pasar al video no exige un modelo nuevo, sino obtener las mismas trayectorias desde la imagen, y para eso ya existen herramientas y datos de pose. A la vez, la falta de datos con etiqueta de cojera y de estudios en la región muestra que un aporte local, con caballos criollos, tendría valor científico. En cuanto a la nube, el costo casi nulo indica que la infraestructura no es una barrera para llevar el sistema a un piloto.
+La minería del estado del arte y el catálogo de datasets tienen también una implicación práctica: pasar al video exige obtener las mismas trayectorias desde la imagen replicando procesos vistos en los estudios. A la vez, la falta de datos con etiqueta de cojera y de estudios en la región muestra que un aporte local, con caballos criollos, tendría valor científico. En cuanto a la nube, el costo casi nulo indica que la infraestructura no es una barrera para llevar el sistema a un piloto.
 
 \subsection{Limitaciones y trabajo futuro}
 
-La validación se apoyó en tres prácticas: separación por caballo en todo el modelado, pruebas estadísticas emparejadas a nivel de animal y reproducción en la nube de los resultados locales. Las principales limitaciones son el número reducido de caballos, el uso de cojera inducida y no natural, y una sola raza. El trabajo futuro incluye comparar a cada caballo con su propia línea base, identificar el lado de la asimetría, estimar el grado de cojera y, en la fase de visión, calcular estas medidas desde video con un modelo de estimación de pose. A más largo plazo, se propone recolectar datos propios de caballos criollos colombianos evaluados por veterinarios, cuyos andares, como el paso fino y la trocha, difieren del trote estudiado en la literatura.
+Las principales limitaciones son el número reducido de caballos, el uso de cojera inducida y no natural, y una sola raza. El trabajo futuro incluye comparar a cada caballo con su propia línea, así, identificar el lado de la asimetría, estimar un grado de cojera y, en la fase de visión, calcular estas medidas desde video con un modelo de estimación de pose. A más largo plazo, se propone recolectar datos propios de caballos criollos colombianos evaluados por veterinarios, cuyos andares, como el paso fino y la trocha, difieren del trote estudiado en la literatura.
 
 \section{Conclusiones}
 
-La minería de datos permitió mapear un campo que avanza rápido hacia la visión por computador y que deja un vacío claro: no hay datos abiertos de video equino con cojera y casi no hay investigación latinoamericana. Los datos de sensores confirmaron que la asimetría del movimiento de la cabeza y la pelvis captura la cojera de forma interpretable, y el modelo construido sobre esas medidas funciona con caballos que nunca vio. El sistema completo, desde la ingesta hasta la predicción, quedó desplegado en la nube como código, con un costo casi nulo. Si en la siguiente fase la visión por computador estima esas mismas trayectorias desde un video, el modelo y la infraestructura de este trabajo ya están listos para recibirlas.
+La minería de datos fue crucial en esta fase del proyecto ya que permitió mapear un campo que avanza rápido hacia la visión por computador y que deja un vacío claro: no hay datos abiertos de video equino con cojera y casi no hay investigación latinoamericana. Por otra parte, los datos de sensores demostraron una asimetría del movimiento de la cabeza y la pelvis que evidencia la cojera de forma interpretable, y el modelo construido sobre esas medidas funciona con caballos que nunca vio. El sistema completo, desde la ingesta hasta la predicción, quedó desplegado en la nube como código, con un costo casi nulo. Si en la siguiente fase la visión por computador estima esas mismas trayectorias desde un video, el modelo y la infraestructura de este trabajo ya están listos para recibirlas.
 
 \section*{Declaración de uso de inteligencia artificial}
 
@@ -425,7 +421,6 @@ Se usaron únicamente datos públicos con licencia abierta y no se trataron dato
 \bibitem{wirth2000} R.~Wirth y J.~Hipp, ``CRISP-DM: Towards a standard process model for data mining,'' en \emph{Proc. 4th Int. Conf. Practical Applications of Knowledge Discovery and Data Mining}, 2000, pp.~29--39.
 \bibitem{agrawal1994} R.~Agrawal y R.~Srikant, ``Fast algorithms for mining association rules,'' en \emph{Proc. 20th Int. Conf. Very Large Data Bases}, 1994, pp.~487--499.
 \bibitem{han2000} J.~Han, J.~Pei y Y.~Yin, ``Mining frequent patterns without candidate generation,'' en \emph{Proc. ACM SIGMOD}, 2000, pp.~1--12.
-\bibitem{wilcoxon1945} F. Wilcoxon, ``Individual comparisons by ranking methods,'' \emph{Biometrics Bulletin}, vol. 1, no. 6, pp. 80--83, 1945.
 \bibitem{salton1988} G. Salton y C. Buckley, ``Term-weighting approaches in automatic text retrieval,'' \emph{Information Processing \& Management}, vol. 24, no. 5, pp. 513--523, 1988.
 \bibitem{lloyd1982} S. Lloyd, ``Least squares quantization in PCM,'' \emph{IEEE Trans. Inf. Theory}, vol. 28, no. 2, pp. 129--137, 1982.
 \bibitem{gower1971} J. C. Gower, ``A general coefficient of similarity and some of its properties,'' \emph{Biometrics}, vol. 27, no. 4, pp. 857--871, 1971.

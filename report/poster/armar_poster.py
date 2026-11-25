@@ -1,5 +1,5 @@
 """
-Llena la plantilla FIDIA (90 x 120 cm) con el contenido del proyecto, en español.
+Llena la plantilla FIDIA (90 x 120 cm) con el contenido del proyecto, en español e inglés.
 Respeta el marco, las posiciones, la tipografía (Arial) y los colores de la plantilla; solo se
 reemplazan textos e imágenes de ejemplo.
 
@@ -16,6 +16,31 @@ HERE = Path(__file__).resolve().parent
 EMU = 360000  # EMU por cm
 
 TXT = {
+    "en": {
+        "title": "Equine Lameness Detection with Data Mining, Machine Learning and the Cloud",
+        "authors": ["Carlos Josué Barrera Vargas",
+                    "Instructors: Iván Felipe Mariño Barreto, Zalma Valentina Moreno Galeano",
+                    "Faculty of Data Engineering and Artificial Intelligence"],
+        "h": ["Introduction", "Methodology", "Results", "Conclusions", "References"],
+        "intro": "Lameness is the most common health problem in horses, and when it is mild, veterinarians often disagree on the diagnosis. Colombia has nearly one million horses. This project builds the analytical foundation of a low-cost system that will detect lameness from a phone video, aligned with SDGs 3 and 8.",
+        "method": "Following CRISP-DM, three sources were integrated: scientific papers collected through the OpenAlex API, a catalogue of public datasets and inertial-sensor signals from 22 horses with induced lameness. The pipeline covers cleaning, feature engineering, EDA, PCA, clustering and association rules, ensemble models validated on unseen horses, and a serverless AWS deployment built with Terraform.",
+        "results": [("Research gap: ", "computer vision rose from 21 % to 52 % of papers, yet only one study on horse lameness with vision has Colombian authors."),
+                    ("Data gap: ", "no public dataset combines horse video with lameness labels."),
+                    ("Clinical signal: ", "head and pelvis asymmetry reveal fore- and hindlimb lameness."),
+                    ("Model: ", "an optimized Random Forest reached a ROC-AUC of 0.71 on unseen horses."),
+                    ("Cloud: ", "the live API returns predictions and stores them in DynamoDB, at zero actual cost.")],
+        "concl": [("", "Data mining mapped a field moving towards computer vision and revealed a clear gap in open data and in Latin American research. Gait asymmetry captures lameness in an interpretable way, and the model generalizes to new horses. The whole system runs in the cloud as code at almost no cost."),
+                  ("Next steps: ", "estimate the same asymmetry measures from phone video with pose estimation, and validate the system on Colombian criollo horses assessed by veterinarians.")],
+        "refs": ["[1] K. G. Keegan et al., “Repeatability of subjective evaluation of lameness in horses,” Equine Vet. J., 2010.",
+                 "[2] M. Hammarberg et al., “Rater agreement of visual lameness assessment in horses during lungeing,” Equine Vet. J., 2016.",
+                 "[3] I. Smit et al., “Kinematic data of the Icelandic horse with induced lameness at walk, trot and tölt,” DataverseNL, 2025.",
+                 "[4] J. Priem, H. Piwowar and R. Orr, “OpenAlex: A fully-open index of scholarly works,” arXiv:2205.01833, 2022.",
+                 "[5] A. Mathis et al., “DeepLabCut: markerless pose estimation of user-defined body parts,” Nat. Neurosci., 2018.",
+                 "[6] C. Li et al., “The Poses for Equine Research Dataset (PFERD),” Sci. Data, 2024.",
+                 "[7] S. M. Lundberg and S.-I. Lee, “A unified approach to interpreting model predictions,” NeurIPS, 2017."],
+        "qr": ["Code, data and infrastructure as code:", "github.com/Cjoh210/Proyecto_Deteccion_Marcha_Equina"],
+        "out": "CarlosBarrera_poster_EN.pptx",
+    },
     "es": {
         "title": "Detección de cojera equina con minería de datos, aprendizaje automático y la nube",
         "authors": ["Carlos Josué Barrera Vargas",
@@ -49,13 +74,17 @@ POS = {
     "TextBox 45": (5.0, 29.7, 33.0),
     "TextBox 46": (42.2, 29.7, 44.0),
     "TextBox 49": (60.3, 60.0, 26.7),
-    "TextBox 52": (4.7, 91.7, 41.5),
-    "TextBox 55": (51.2, 91.7, 34.5),
+    "TextBox 52": (4.7, 86.3, 41.5),
+    "TextBox 55": (51.2, 86.3, 34.5),
 }
+ARQ = ("arquitectura.png", 4.0, 74.4, 55.3, 6.6)  # franja nueva bajo la gráfica de resultados (cm)
+LINEAS = ("lineas_investigacion.png", 4.7, 97.4, 41.5, 16.6)  # mapa de clusters bajo las conclusiones (cm)
+SUBIR = 5.4        # la sección 04 y la bibliografía suben este espacio (cm)
+SUBEN = ["Group 30", "Group 32", "Group 35", "TextBox 38", "Group 4"]
 IMGS = {  # grupo -> (archivo, x, y, w, h) en cm
     "Group 43": ("intro_tendencia.png", 5.0, 39.0, 31.0, 15.0),
     "Group 47": ("metodologia.png", 42.2, 39.0, 40.0, 15.0),
-    "Group 50": ("resultados.png", 4.0, 60.0, 55.3, 20.0),
+    "Group 50": ("resultados.png", 4.0, 60.0, 55.3, 14.0),
     "Group 53": ("qr_repositorio.png", 51.6, 103.2, 7.4, 7.4),
 }
 
@@ -143,6 +172,27 @@ def add_textbox(xml, sid, name, x, y, w, paras):
     return xml.replace("</p:spTree>", sp + "</p:spTree>")
 
 
+def subir(xml, name, dy, crecer=False):
+    """Sube un elemento de primer nivel dy cm; si crecer, alarga su alto lo mismo para conservar el borde inferior."""
+    m = re.search(r'<p:(sp|grpSp)>(?:(?!</p:\1>).)*?name="%s".*?</p:\1>' % re.escape(name), xml, re.S)
+    assert m, name
+    b = m.group(0)
+    def rep(mm):
+        y = int(mm.group(2)) - int(round(dy * EMU))
+        cy = int(mm.group(4)) + (int(round(dy * EMU)) if crecer else 0)
+        return f'<a:off x="{mm.group(1)}" y="{y}"/><a:ext cx="{mm.group(3)}" cy="{cy}"/>'
+    b = re.sub(r'<a:off x="(\d+)" y="(\d+)"/><a:ext cx="(\d+)" cy="(\d+)"/>', rep, b, count=1)
+    return xml[:m.start()] + b + xml[m.end():]
+
+
+def add_picture(xml, sid, name, rid, x, y, w, h):
+    pic = (f'<p:pic><p:nvPicPr><p:cNvPr id="{sid}" name="{name}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>'
+           f'<p:blipFill><a:blip r:embed="{rid}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>'
+           f'<p:spPr><a:xfrm><a:off x="{emu(x)}" y="{emu(y)}"/><a:ext cx="{emu(w)}" cy="{emu(h)}"/></a:xfrm>'
+           f'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>')
+    return xml.replace("</p:spTree>", pic + "</p:spTree>")
+
+
 def build(template, lang):
     t = TXT[lang]
     work = HERE / f"_build_{lang}"
@@ -161,6 +211,17 @@ def build(template, lang):
                         'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"/></Relationships>')
         xml = set_image(xml, grp, rid, x, y, w, h)
 
+    # arquitectura en AWS, franja bajo los resultados
+    shutil.copy(HERE / "figures" / lang / ARQ[0], work / "ppt/media/poster_arquitectura.png")
+    rx = rx.replace("</Relationships>", '<Relationship Id="rId30" Target="../media/poster_arquitectura.png" '
+                    'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"/></Relationships>')
+    xml = add_picture(xml, 91, "Arquitectura AWS", "rId30", *ARQ[1:])
+    # mapa de las líneas de investigación bajo las conclusiones
+    shutil.copy(HERE / "figures" / lang / LINEAS[0], work / "ppt/media/poster_lineas.png")
+    rx = rx.replace("</Relationships>", '<Relationship Id="rId31" Target="../media/poster_lineas.png" '
+                    'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"/></Relationships>')
+    xml = add_picture(xml, 92, "Lineas de investigacion", "rId31", *LINEAS[1:])
+
     # títulos de sección y numeración (05 -> 04)
     for name, txt in zip(["TextBox 13", "TextBox 21", "TextBox 29", "TextBox 37", "TextBox 38"], t["h"]):
         xml = set_simple(xml, name, txt)
@@ -177,6 +238,8 @@ def build(template, lang):
     xml = set_paras(xml, "TextBox 55", [para([(r, False)], 1899, "444444", 2462, after=500) for r in t["refs"]])
     for name, pos in POS.items():
         xml = move(xml, name, *pos)
+    for name in SUBEN:
+        xml = subir(xml, name, SUBIR, crecer=(name == "Group 4"))
     # texto junto al QR
     xml = add_textbox(xml, 90, "TextBox QR", 60.3, 104.6, 25.5,
                       [para([(t["qr"][0], True)], 2200, "1F1F1F", 2900, after=300), para([(t["qr"][1], False)], 2000, "004AAD", 2700)])
