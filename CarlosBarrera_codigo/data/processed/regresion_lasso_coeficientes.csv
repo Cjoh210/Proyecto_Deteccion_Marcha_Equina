@@ -1,0 +1,28 @@
+,coeficiente
+perfil_Cinemática y biomecánica de la marcha,-0.24138673060407906
+perfil_Patologías articulares y tratamiento,-0.22216400549267554
+tipo_book-chapter,-0.16372236859402167
+perfil_Diagnóstico clínico de la cojera,-0.13028696670127382
+"perfil_Genética, bienestar y rendimiento",-0.12941031474907239
+tipo_dissertation,-0.12252281053465056
+anio,-0.0867941712716227
+tiene_resumen,-0.02886509534833891
+tipo_conference-paper,-0.006030234629598244
+tema_sensores,0.0017475633810219253
+tema_ml,0.0026255663384326406
+long_resumen,0.006651538630720296
+tema_clinico,0.011921036672376182
+n_keywords,0.025043027307183045
+n_consultas,0.026175958881316342
+acceso_abierto,0.03504523896528318
+tema_vision,0.04600667223418676
+perfil_Sensores inerciales y asimetría de marcha,0.06276112358729566
+tipo_infrequent_sklearn,0.08472061418287984
+n_autores,0.08889358894853905
+n_paises,0.18180121875671362
+perfil_Visión por computador para monitoreo animal,0.18846472061762978
+n_referencias,0.21269988716796534
+perfil_Detección de cojera en bovinos,0.2655093211888451
+tipo_article,0.42853064027799115
+perfil_Estimación de pose animal (deep learning),0.49427800133819144
+tipo_review,1.0333881261814324

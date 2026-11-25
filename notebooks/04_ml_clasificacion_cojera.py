@@ -1,5 +1,5 @@
 # %% [markdown]
-# # 04 · Machine Learning (avance preliminar): clasificación sano vs. cojo por zancada
+# # 04 · Machine Learning: clasificación sano vs. cojo por zancada
 # Fase CRISP-DM: *Modelado* y *Evaluación*. Entrada: `data/processed/imu_zancadas_limpio.csv` (notebook 03).
 #
 # **Pregunta predictiva:** dadas las métricas de simetría de una zancada de trote, ¿está el caballo cojo?
@@ -38,7 +38,8 @@ from scipy.stats import loguniform
 
 warnings.filterwarnings("ignore")
 ROOT = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
-FIG = ROOT / "docs" / "figures"; OUT = ROOT / "data" / "processed"; MODELS = ROOT / "models"
+FIG = ROOT / "figuras" / "04_ml_clasificacion"; OUT = ROOT / "data" / "processed"; MODELS = ROOT / "models"
+FIG.mkdir(parents=True, exist_ok=True)
 MODELS.mkdir(exist_ok=True)
 sns.set_theme(style="whitegrid", palette="deep")
 plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 200, "savefig.bbox": "tight"})
@@ -227,13 +228,13 @@ base.to_csv(OUT / "ml_resultados_cv.csv", index=False); res_test.to_csv(OUT / "m
 print("Modelo guardado en models/modelo_cojera.joblib")
 
 # %% [markdown]
-# ## 7. Conclusiones del avance de ML y siguientes pasos
+# ## 7. Conclusiones y siguientes pasos
 # - Con variables de **una sola zancada** y validación con **caballos no vistos**, el modelo detecta la cojera inducida
 #   mejor que el azar (ROC-AUC ≈ 0,71 tanto en los 5 caballos de prueba como en Leave-One-Horse-Out; 7 de 9 pruebas de trote bien clasificadas al promediar sus zancadas). Es un rendimiento **moderado**, y es
 #   honesto: la cojera inducida es leve y algunos caballos son asimétricos incluso sanos.
-# - La validación agrupada es la decisión más importante del avance: con una partición aleatoria por zancada las métricas
+# - La validación agrupada es la decisión más importante del modelado: con una partición aleatoria por zancada las métricas
 #   saldrían infladas, porque el modelo reconocería a cada caballo.
-# - **Para la entrega final:** (1) normalizar cada caballo frente a una sesión de referencia propia (seguimiento
+# - **Siguientes pasos:** (1) normalizar cada caballo frente a una sesión de referencia propia (seguimiento
 #   longitudinal), (2) usar asimetrías con signo, identificando el miembro con los sensores de casco, (3) agregar
-#   modelos de regresión para estimar el grado de asimetría, y (4) servir el modelo como API en AWS.
+#   modelos de regresión para estimar el grado de asimetría. El modelo final ya se sirve como API en AWS (`src/cloud/lambda_inferencia`).
 

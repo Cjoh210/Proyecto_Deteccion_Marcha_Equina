@@ -1,32 +1,32 @@
 servicio,componente,usd_mes,supuesto,escenario,capa_gratuita
-Lambda,Ingesta OpenAlex (arm64),0.00800004,4 ejecuciones × 300 s × 0.5 GB,Académico (avance),False
-Lambda,"Inferencia (x86, Docker)",0.0166667,"1,000 pruebas × 1.0 s × 1.0 GB",Académico (avance),False
-Lambda,Solicitudes,0.0002008,"1,004 solicitudes",Académico (avance),False
-API Gateway,HTTP API,0.001,"1,000 solicitudes",Académico (avance),False
-DynamoDB,Escrituras on-demand + PITR,0.005125,"1,000 escrituras, 0.01 GB",Académico (avance),False
-S3,Standard (data lake),0.161,7.0 GB,Académico (avance),False
-S3,Glacier (raw > 90 días),0.0,0 GB,Académico (avance),False
-S3,Solicitudes PUT,0.01,"2,000 PUT",Académico (avance),False
-S3 (DR),Réplica Standard-IA + transferencia,0.0,0 GB almacenados en us-west-2; 0 GB nuevos replicados/mes,Académico (avance),False
-Athena,Consultas SQL,0.025,100 consultas × 50 MB,Académico (avance),False
-SSM Parameter Store,Clave OpenAlex (SecureString estándar),0.0,Nivel estándar sin costo,Académico (avance),False
-ECR,Imagen de inferencia,0.05,0.5 GB,Académico (avance),False
-CloudWatch,Logs,0.1,0.2 GB,Académico (avance),False
-Glue / Budgets / SNS / EventBridge,"Catálogo, alertas, programación",0.0,"Dentro de cuotas gratuitas (1 M objetos en catálogo, 2 presupuestos, reglas programadas)",Académico (avance),False
-Lambda,Ingesta OpenAlex (arm64),0.0,4 ejecuciones × 300 s × 0.5 GB,Académico (avance),True
-Lambda,"Inferencia (x86, Docker)",0.0,"1,000 pruebas × 1.0 s × 1.0 GB",Académico (avance),True
-Lambda,Solicitudes,0.0,"1,004 solicitudes",Académico (avance),True
-API Gateway,HTTP API,0.0,"1,000 solicitudes",Académico (avance),True
-DynamoDB,Escrituras on-demand + PITR,0.002625,"1,000 escrituras, 0.01 GB",Académico (avance),True
-S3,Standard (data lake),0.046,7.0 GB,Académico (avance),True
-S3,Glacier (raw > 90 días),0.0,0 GB,Académico (avance),True
-S3,Solicitudes PUT,0.01,"2,000 PUT",Académico (avance),True
-S3 (DR),Réplica Standard-IA + transferencia,0.0,0 GB almacenados en us-west-2; 0 GB nuevos replicados/mes,Académico (avance),True
-Athena,Consultas SQL,0.025,100 consultas × 50 MB,Académico (avance),True
-SSM Parameter Store,Clave OpenAlex (SecureString estándar),0.0,Nivel estándar sin costo,Académico (avance),True
-ECR,Imagen de inferencia,0.05,0.5 GB,Académico (avance),True
-CloudWatch,Logs,0.0,0.2 GB,Académico (avance),True
-Glue / Budgets / SNS / EventBridge,"Catálogo, alertas, programación",0.0,"Dentro de cuotas gratuitas (1 M objetos en catálogo, 2 presupuestos, reglas programadas)",Académico (avance),True
+Lambda,Ingesta OpenAlex (arm64),0.00800004,4 ejecuciones × 300 s × 0.5 GB,Académico,False
+Lambda,"Inferencia (x86, Docker)",0.0166667,"1,000 pruebas × 1.0 s × 1.0 GB",Académico,False
+Lambda,Solicitudes,0.0002008,"1,004 solicitudes",Académico,False
+API Gateway,HTTP API,0.001,"1,000 solicitudes",Académico,False
+DynamoDB,Escrituras on-demand + PITR,0.005125,"1,000 escrituras, 0.01 GB",Académico,False
+S3,Standard (data lake),0.161,7.0 GB,Académico,False
+S3,Glacier (raw > 90 días),0.0,0 GB,Académico,False
+S3,Solicitudes PUT,0.01,"2,000 PUT",Académico,False
+S3 (DR),Réplica Standard-IA + transferencia,0.0,0 GB almacenados en us-west-2; 0 GB nuevos replicados/mes,Académico,False
+Athena,Consultas SQL,0.025,100 consultas × 50 MB,Académico,False
+SSM Parameter Store,Clave OpenAlex (SecureString estándar),0.0,Nivel estándar sin costo,Académico,False
+ECR,Imagen de inferencia,0.05,0.5 GB,Académico,False
+CloudWatch,Logs,0.1,0.2 GB,Académico,False
+Glue / Budgets / SNS / EventBridge,"Catálogo, alertas, programación",0.0,"Dentro de cuotas gratuitas (1 M objetos en catálogo, 2 presupuestos, reglas programadas)",Académico,False
+Lambda,Ingesta OpenAlex (arm64),0.0,4 ejecuciones × 300 s × 0.5 GB,Académico,True
+Lambda,"Inferencia (x86, Docker)",0.0,"1,000 pruebas × 1.0 s × 1.0 GB",Académico,True
+Lambda,Solicitudes,0.0,"1,004 solicitudes",Académico,True
+API Gateway,HTTP API,0.0,"1,000 solicitudes",Académico,True
+DynamoDB,Escrituras on-demand + PITR,0.002625,"1,000 escrituras, 0.01 GB",Académico,True
+S3,Standard (data lake),0.046,7.0 GB,Académico,True
+S3,Glacier (raw > 90 días),0.0,0 GB,Académico,True
+S3,Solicitudes PUT,0.01,"2,000 PUT",Académico,True
+S3 (DR),Réplica Standard-IA + transferencia,0.0,0 GB almacenados en us-west-2; 0 GB nuevos replicados/mes,Académico,True
+Athena,Consultas SQL,0.025,100 consultas × 50 MB,Académico,True
+SSM Parameter Store,Clave OpenAlex (SecureString estándar),0.0,Nivel estándar sin costo,Académico,True
+ECR,Imagen de inferencia,0.05,0.5 GB,Académico,True
+CloudWatch,Logs,0.0,0.2 GB,Académico,True
+Glue / Budgets / SNS / EventBridge,"Catálogo, alertas, programación",0.0,"Dentro de cuotas gratuitas (1 M objetos en catálogo, 2 presupuestos, reglas programadas)",Académico,True
 Lambda,Ingesta OpenAlex (arm64),0.00800004,4 ejecuciones × 300 s × 0.5 GB,Piloto (50 clínicas),False
 Lambda,"Inferencia (x86, Docker)",0.666668,"20,000 pruebas × 2.0 s × 1.0 GB",Piloto (50 clínicas),False
 Lambda,Solicitudes,0.0040008000000000005,"20,004 solicitudes",Piloto (50 clínicas),False

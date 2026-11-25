@@ -29,7 +29,8 @@ from sklearn.preprocessing import Normalizer
 
 warnings.filterwarnings("ignore")
 ROOT = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
-FIG = ROOT / "docs" / "figures"; OUT = ROOT / "data" / "processed"
+FIG = ROOT / "figuras" / "02_articulos_clustering_reglas"; OUT = ROOT / "data" / "processed"
+FIG.mkdir(parents=True, exist_ok=True)
 sns.set_theme(style="whitegrid", palette="deep")
 plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 200, "savefig.bbox": "tight"})
 SEED = 42

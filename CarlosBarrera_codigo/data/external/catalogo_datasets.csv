@@ -1,0 +1,15 @@
+nombre,anio,modalidad,especies,incluye_caballo,solo_caballo,n_muestras,unidad_muestra,n_individuos_o_especies,n_keypoints,etiqueta_cojera,etiqueta_comportamiento,video_temporal,datos_3d,licencia,uso_comercial_confirmado,acceso,fuente_url
+Horse-30 / Horse-10,2021,imagen (frames de video),caballo,1,1,8114.0,frames,30,22.0,0,0,1,0,CC BY-NC 4.0,0,abierto,https://horse10.deeplabcut.org
+PFERD,2024,video multivista + mocap 3D,caballo,1,1,,secuencias,5,100.0,0,1,1,1,acceso abierto (Scientific Data),0,abierto,https://doi.org/10.1038/s41597-024-03312-1
+IMU caballo islandés - cojera inducida,2023,IMU (16 sensores 500 Hz),caballo,1,1,85.0,pruebas,22,0.0,1,0,1,0,CC BY 4.0,1,abierto,https://doi.org/10.34894/PEWAK6
+Horse Treadmill (Zúrich / hSMAL),2021,video multivista + mocap 3D,caballo,1,1,,secuencias,10,0.0,1,0,1,1,no especificada (sin descarga pública),0,restringido,https://arxiv.org/abs/2106.10102
+AP-10K,2021,imagen,54 especies de mamíferos,1,0,10015.0,imágenes,54,17.0,0,0,0,0,CC BY 4.0,1,abierto,https://github.com/AlexTheBad/AP-10K
+APT-36K,2022,video (clips de 15 frames),30 especies,1,0,36000.0,frames,30,17.0,0,0,1,0,solo investigación (frames de YouTube),0,abierto,https://github.com/pandorgan/APT-36K
+APTv2,2023,video (clips de 15 frames),30 especies,1,0,41235.0,frames,30,17.0,0,0,1,0,no especificada (uso académico),0,abierto,https://arxiv.org/abs/2312.15612
+Animal Kingdom,2022,video + frames,850 especies,1,0,33000.0,frames (pose),850,,0,1,1,0,no especificada (descarga con formulario),0,abierto con registro,https://sutdcv.github.io/Animal-Kingdom
+Animal-Pose,2019,imagen,5 especies (perro gato vaca caballo oveja),1,0,4000.0,imágenes,5,20.0,0,0,0,0,no especificada (uso académico),0,abierto,https://sites.google.com/view/animal-pose/
+TigDog,2015,video,caballo y tigre,1,0,10152.0,frames de caballo,2,19.0,0,1,1,0,no especificada (uso académico),0,abierto,https://arxiv.org/abs/1511.09319
+Synthetic Animals,2020,imagen sintética,5 especies (incluye caballo),1,0,50000.0,imágenes,5,18.0,0,0,0,0,no especificada (uso académico),0,abierto,https://arxiv.org/abs/1912.08265
+CowScreeningDB,2024,IMU (smartwatch),vaca lechera,0,0,,registros,43,0.0,1,0,1,0,gratis para investigación,0,abierto,https://github.com/Shahid-Ismail/CowScreeningDB-A-public-database-for-lameness-detection
+Collar IMU bovinos (Chile),2025,IMU (collar),vaca lechera,0,0,441.0,comportamientos etiquetados,10,0.0,0,1,1,0,acceso abierto (Frontiers),0,abierto,https://doi.org/10.3389/fvets.2025.1630083
+Cojera en ovejas (sensor de oreja),2019,IMU (acelerómetro + giroscopio 16 Hz),oveja,0,0,23.0,registros,23,0.0,1,1,1,0,abierto (Zenodo),0,abierto,https://zenodo.org/records/4993101

@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore")
 ROOT = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 RAW = ROOT / "data" / "raw" / "openalex_works_raw.csv"
 OUT = ROOT / "data" / "processed"
-FIG = ROOT / "docs" / "figures"
+FIG = ROOT / "figuras" / "01_articulos_eda"
 OUT.mkdir(parents=True, exist_ok=True); FIG.mkdir(parents=True, exist_ok=True)
 sns.set_theme(style="whitegrid", context="notebook", palette="deep")
 plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 200, "savefig.bbox": "tight"})

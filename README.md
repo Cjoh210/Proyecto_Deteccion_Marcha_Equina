@@ -1,96 +1,103 @@
-# Detección de cojera equina: minería de datos, ML y nube (avance)
+# Detección de cojera equina con minería de datos, machine learning y la nube
 
-**Proyecto integrador · Quinto semestre · Ingeniería de Datos e IA · Universidad Santo Tomás, Tunja**
+**Proyecto integrador · Ingeniería de Datos e Inteligencia Artificial · Universidad Santo Tomás, Tunja**
 Autor: **Carlos Josué Barrera Vargas** · Asignaturas: Minería de Datos, Machine Learning y Cloud Computing
-ODS: **3** (salud y bienestar, enfoque *Una Salud*) y **8** (trabajo decente y crecimiento económico: sector equino rural)
 
-> Fase exploratoria del sistema. Antes de construir el detector de cojera por **visión por computador** (fase final),
-> este avance usa minería de datos para entender el estado del arte, perfilar los datasets disponibles y validar con
-> datos de sensores reales qué señales de la marcha delatan la cojera.
+La cojera es el problema de salud más común en los caballos y, cuando es leve, los veterinarios no siempre coinciden en el diagnóstico. Este proyecto construye la base de un sistema objetivo y de bajo costo para detectarla. En una fase futura funcionará con video del celular; por ahora trabaja con datos: artículos científicos, un catálogo de datasets públicos y señales de sensores de 22 caballos con cojera inducida. Se alinea con los ODS 3 (salud y bienestar) y 8 (trabajo decente y crecimiento económico).
 
-## Qué contiene
+**Documentos:** [informe final](report/final/CarlosBarrera_informe.pdf) · [póster](report/poster/CarlosBarrera_poster_ES.pdf) · [informe de avance](report/avance/CarlosBarrera_informe.pdf) · [índice de figuras](figuras/README.md)
 
-| Componente | Dónde | Resultado principal |
-|---|---|---|
-| **Web scraping** (API REST OpenAlex) | `src/scraping/openalex_scraper.py`, `src/cloud/lambda_ingesta/` | 6.472 registros crudos → 4.024 artículos limpios |
-| **Limpieza + EDA** del corpus científico | `notebooks/01_articulos_limpieza_eda.ipynb` | Tendencias, outliers de impacto (IQR + z robusto) |
-| **Clustering de texto + reglas de asociación** | `notebooks/02_articulos_clustering_reglas.ipynb` | 8 líneas de investigación (K-Means sobre TF-IDF/SVD), 52 reglas FP-Growth, vacío: 175 trabajos caballo+cojera+visión y solo 1 con autores de Colombia |
-| **Dataset IMU de cojera inducida** (22 caballos) | `src/imu/*.py`, `notebooks/03_imu_eda_perfiles.ipynb` | 1.817 zancadas × 27 métricas de simetría; PCA, Isolation Forest, K-Means y clustering jerárquico de perfiles |
-| **ML preliminar** (sano vs. cojo) | `notebooks/04_ml_clasificacion_cojera.ipynb` | 6 modelos, Grid/Random Search, validación agrupada por caballo; Random Forest: ROC-AUC 0,71 con caballos no vistos; SHAP |
-| **Regresión del impacto científico** | `notebooks/06_regresion_impacto_articulos.ipynb` | Lineal, polinomial, Ridge, Lasso y Elastic Net con Grid Search; Lasso identifica qué tipo de trabajo tiene más impacto |
-| **Perfilamiento de datasets públicos** | `notebooks/05_catalogo_datasets_perfiles.ipynb` | 14 datasets, distancia de Gower + clustering jerárquico; ningún dataset público tiene video de caballos con etiqueta de cojera |
-| **Infraestructura como código (AWS)** | `terraform/` | S3 data lake, Lambda + EventBridge, Glue/Athena, DynamoDB, API Gateway, ECR, CloudWatch/Budgets, réplica DR opcional |
-| **Diagrama y costos** | `docs/figures/arquitectura_aws.png`, `src/cloud/estimacion_costos.py` | ≈ USD 0,13–0,38/mes (académico, prácticamente gratis) y ≈ USD 11–13,5/mes (piloto) |
+## Resultados principales
+
+**1. La investigación avanza hacia la visión por computador, pero casi no hay trabajo en Colombia.** De 6.472 registros obtenidos con la API de OpenAlex quedaron 4.024 artículos limpios. El clustering encontró ocho líneas de investigación, y solo un estudio sobre cojera equina con visión tiene autores colombianos.
+
+![Publicaciones por año](figuras/01_articulos_eda/art_tendencia_anual.png)
+
+**2. La asimetría del movimiento delata la cojera.** En la cojera anterior casi se duplica la asimetría de la cabeza; en la posterior aumenta la del sacro y la de las caderas.
+
+![Cambio de la asimetría por caballo](figuras/03_imu_perfiles/imu_pareado_caballos.png)
+
+**3. El modelo reconoce la cojera en caballos que nunca vio.** Un Random Forest optimizado alcanzó un ROC-AUC de 0,71 con cinco caballos de prueba y acertó 7 de 9 pruebas de trote. SHAP muestra que se apoya en los mismos signos que mira un veterinario.
+
+![Curva ROC y matriz de confusión](figuras/04_ml_clasificacion/ml_roc_confusion.png)
+
+**4. Todo funciona en AWS casi sin costo.** La infraestructura está escrita en Terraform: ingesta semanal, data lake en S3, consultas con Athena y una API que entrega predicciones y las guarda en DynamoDB. Cuesta unos USD 0,38 al mes en uso académico y el costo real ha sido cero.
+
+![Arquitectura en AWS](figuras/07_cloud_aws/arquitectura_aws.png)
 
 ## Estructura
 
 ```
-├── data/
-│   ├── raw/                 # respuesta de OpenAlex (CSV aplanado; el JSONL se regenera)
-│   ├── processed/           # datasets limpios, resultados de clustering, reglas, ML y costos
-│   └── external/            # catálogo curado de datasets (+ descarga IMU, fuera de git)
-├── notebooks/               # 01–06, cada uno en .ipynb (ejecutado) y .py (formato percent)
+├── notebooks/        # 01 a 06: el análisis completo, en .ipynb (ejecutado) y .py
+├── figuras/          # gráficas de resultados, una carpeta por notebook
+├── data/             # datos crudos, procesados y catálogo de datasets
+├── models/           # modelo final (.joblib) y sus metadatos
 ├── src/
-│   ├── scraping/            # cliente OpenAlex
-│   ├── imu/                 # descarga Dataverse + extracción de características por zancada
-│   ├── cloud/               # Lambdas (ingesta, inferencia + Dockerfile) y estimación de costos
-│   ├── figuras_en.py        # versiones en inglés de las figuras del informe
-│   └── py2nb.py             # convierte los .py en notebooks
-├── terraform/               # IaC de AWS
-├── models/                  # modelo final (.joblib) y metadatos
-├── docs/figures/            # todas las figuras (en español)
-├── report/                  # informes IEEE: avance, final en español (final/es) y en inglés (final/en)
-└── run_pipeline.sh          # ejecuta todo de principio a fin
+│   ├── scraping/     # recolección de artículos desde OpenAlex
+│   ├── imu/          # descarga del dataset de sensores y cálculo de métricas por zancada
+│   ├── cloud/        # Lambdas de ingesta e inferencia, diagrama, ejemplo de predicción y costos
+│   └── api_intellij/ # API en Java (Spring Boot) que consulta el modelo desde Postman
+├── terraform/        # infraestructura de AWS como código
+├── report/           # informe final, informe de avance y póster
+├── herramientas/     # utilidades internas (convertir .py en notebooks)
+└── run_pipeline.sh   # ejecuta todo el análisis de principio a fin
 ```
 
-## Cómo ejecutar
+| Notebook | Qué hace |
+| --- | --- |
+| `01_articulos_limpieza_eda` | Limpia el corpus de artículos y lo explora |
+| `02_articulos_clustering_reglas` | Agrupa los artículos por tema y busca reglas de asociación |
+| `03_imu_eda_perfiles` | Explora las señales de los sensores, sus atípicos y perfiles |
+| `04_ml_clasificacion_cojera` | Entrena y evalúa el clasificador de cojera |
+| `05_catalogo_datasets_perfiles` | Compara los datasets públicos disponibles |
+| `06_regresion_impacto_articulos` | Modela qué explica el impacto de un artículo |
 
-**Requisitos:** Python 3.11+ y, opcionalmente, Terraform ≥ 1.6 y la CLI de AWS.
+## Cómo ejecutarlo
+
+Requisitos: Python 3.11 o superior. Para la nube, además, Terraform 1.6 o superior y la CLI de AWS.
 
 ```bash
-git clone https://github.com/Cjoh210/Proyecto_Deteccion_Marcha_Equina.git && cd Proyecto_Deteccion_Marcha_Equina
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
+git clone https://github.com/Cjoh210/Proyecto_Deteccion_Marcha_Equina.git
+cd Proyecto_Deteccion_Marcha_Equina
+python -m venv .venv && source .venv/bin/activate      # en Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-# Opción A: reproducir los análisis con los datos incluidos (minutos)
-bash run_pipeline.sh
-
-# Opción B: todo desde cero, incluida la descarga (~6,2 GB de señales IMU)
-echo "OPENALEX_API_KEY=su_clave" > .env                  # clave gratuita: https://openalex.org
-bash run_pipeline.sh --descargar
+bash run_pipeline.sh                # repite el análisis con los datos incluidos
+bash run_pipeline.sh --descargar    # o descarga todo desde cero (~6,2 GB de señales)
 ```
 
-Cada notebook también se puede abrir y ejecutar por separado con `jupyter lab notebooks/`.
+Para descargar desde cero hace falta una clave gratuita de OpenAlex en un archivo `.env` con la línea `OPENALEX_API_KEY=su_clave`. Cada notebook también se puede abrir por separado con `jupyter lab notebooks/`.
 
-### Infraestructura en AWS
+### Despliegue en AWS
 
 ```bash
 cd terraform
-cp terraform.tfvars.example terraform.tfvars            # completar valores (no se versiona)
+cp terraform.tfvars.example terraform.tfvars     # completar los valores; este archivo no se sube al repositorio
 terraform init
-terraform plan
-terraform apply                                          # crea data lake, ingesta, analítica, BD y monitoreo
+terraform apply                                  # data lake, ingesta, analítica, base de datos y monitoreo
 
-# Opcional: API de inferencia
+# API de inferencia (opcional)
 aws ecr get-login-password | docker login --username AWS --password-stdin $(terraform output -raw ecr_inferencia | cut -d/ -f1)
 docker build --platform linux/amd64 --provenance=false -t $(terraform output -raw ecr_inferencia):latest ../src/cloud/lambda_inferencia
 docker push $(terraform output -raw ecr_inferencia):latest
 aws s3 cp ../models/modelo_cojera.joblib s3://$(terraform output -raw bucket_datalake)/models/
 terraform apply -var desplegar_api_inferencia=true
-curl -X POST "$(terraform output -raw url_api)" -H "Content-Type: application/json" -d @../docs/ejemplo_prediccion.json
+curl -X POST "$(terraform output -raw url_api)" -H "Content-Type: application/json" -d @../src/cloud/ejemplo_prediccion.json
 
-terraform destroy                                        # al terminar, para no generar costos
+terraform destroy                                # al terminar, para no generar costos
 ```
+
+La API en Java se abre en IntelliJ desde `src/api_intellij` y se prueba con la colección de Postman de su carpeta `postman/`.
 
 ## Fuentes de datos
 
-- **OpenAlex** (API REST abierta, CC0): https://openalex.org
-- **Smit, I. et al.** *Kinematic data of the Icelandic horse with induced lameness at walk, trot and tölt.* DataverseNL, doi:[10.34894/PEWAK6](https://doi.org/10.34894/PEWAK6), licencia CC BY 4.0. En este repositorio solo están las **características derivadas** (zancadas); las señales crudas se descargan con `src/imu/download_dataset.py`.
-- Catálogo de datasets: cada fila de `data/external/catalogo_datasets.csv` incluye la URL de su fuente.
+- **OpenAlex**, índice abierto de publicaciones científicas: https://openalex.org
+- **Smit, I. et al.** *Kinematic data of the Icelandic horse with induced lameness at walk, trot and tölt.* DataverseNL, doi:[10.34894/PEWAK6](https://doi.org/10.34894/PEWAK6), licencia CC BY 4.0. El repositorio incluye solo las métricas calculadas por zancada; las señales crudas se descargan con `src/imu/download_dataset.py`.
+- **Catálogo de datasets:** cada fila de `data/external/catalogo_datasets.csv` incluye el enlace a su fuente.
 
-## Decisiones técnicas clave
+## Decisiones importantes
 
-1. **Validación agrupada por caballo** (GroupKFold, hold-out de 5 caballos y Leave-One-Horse-Out): evita que el modelo "memorice" individuos y estima el rendimiento real con caballos nuevos.
-2. **Los outliers se interpretan, no se borran**: en bibliometría son los trabajos más influyentes y en el IMU son, en buena parte, la señal clínica. Solo se eliminan los artefactos físicamente imposibles (1 % de las zancadas).
-3. **Pruebas estadísticas a nivel de caballo** (Wilcoxon emparejado), no de zancada, para respetar la dependencia de los datos.
-4. **Arquitectura serverless** (Lambda, S3, DynamoDB on-demand): costo casi nulo cuando no hay uso, escalado automático y alta disponibilidad Multi-AZ gestionada por AWS.
+1. **Validar siempre con caballos nuevos.** Las zancadas de un mismo caballo se parecen tanto que mezclarlas entre entrenamiento y prueba inflaría los resultados.
+2. **Interpretar los atípicos antes de borrarlos.** En los artículos son los trabajos más influyentes y en los sensores son, en buena parte, la propia señal de cojera. Solo se eliminaron los registros físicamente imposibles.
+3. **Comparar cada caballo consigo mismo**, con la prueba de Wilcoxon emparejada, porque las zancadas de un mismo animal no son independientes.
+4. **Arquitectura sin servidores**, que solo cobra cuando trabaja y escala sola.

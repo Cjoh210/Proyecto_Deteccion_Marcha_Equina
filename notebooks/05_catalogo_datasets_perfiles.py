@@ -18,7 +18,8 @@ from scipy.cluster.hierarchy import dendrogram, fcluster, linkage
 from scipy.spatial.distance import squareform
 
 ROOT = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
-FIG = ROOT / "docs" / "figures"; OUT = ROOT / "data" / "processed"
+FIG = ROOT / "figuras" / "05_catalogo_datasets"; OUT = ROOT / "data" / "processed"
+FIG.mkdir(parents=True, exist_ok=True)
 sns.set_theme(style="whitegrid")
 plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 200, "savefig.bbox": "tight"})
 
@@ -128,11 +129,11 @@ vacio.to_frame("n")
 #    **(P4) video con keypoints** (Horse-30, APT-36K, APTv2, Animal Kingdom, TigDog), temporal y multiespecie, sin cojera.
 # 2. **Ningún dataset público combina video de caballos con una etiqueta de cojera.** El único con video y cojera (Zúrich)
 #    no está disponible para descargar. El único dataset de caballo con cojera y acceso abierto es de sensores IMU, y es
-#    justo el que se usa en este avance.
+#    justo el que se usa en este proyecto.
 # 3. **Estrategia propuesta para la fase de visión:** (a) preentrenar el detector de keypoints con AP-10K o Horse-30;
 #    (b) usar PFERD (video sincronizado con mocap) para validar que los keypoints estimados reproducen el desplazamiento
 #    vertical de cabeza y pelvis; (c) aplicar el clasificador de cojera entrenado con métricas de simetría (notebook 04)
-#    sobre las trayectorias estimadas desde video. Así, el modelo de ML de este avance se reutiliza en la fase de visión.
+#    sobre las trayectorias estimadas desde video. Así, el modelo de ML de este proyecto se reutiliza en la fase de visión.
 
 # %%
 cat.to_csv(OUT / "catalogo_datasets_perfilado.csv", index=False)

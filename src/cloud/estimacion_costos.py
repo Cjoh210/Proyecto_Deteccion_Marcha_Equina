@@ -1,8 +1,8 @@
 """
-Estimación preliminar de costos mensuales de la arquitectura AWS (us-east-1).
+Estimación de costos mensuales de la arquitectura AWS (us-east-1).
 
 Dos escenarios:
-  * Académico (avance): datos del proyecto, ingesta semanal, ~1.000 predicciones de prueba/mes.
+  * Académico: datos del proyecto, ingesta semanal, ~1.000 predicciones de prueba/mes.
   * Piloto (proyección): 50 clínicas/criaderos, 20.000 pruebas de trote/mes, réplica DR activa.
 
 Precios de lista on-demand en us-east-1 consultados en noviembre de 2026. Los que vienen de las páginas
@@ -32,7 +32,7 @@ FREE = {"lambda_gb_s": 400_000, "lambda_req": 1_000_000, "apigw_req": 1_000_000,
         "cw_logs_gb": 5, "s3_gb": 5}
 
 ESCENARIOS = {
-    "Académico (avance)": dict(s3_std=7.0, s3_glacier=0, s3_put=2_000, ingestas=4, ingesta_s=300, ingesta_gb=0.5,
+    "Académico": dict(s3_std=7.0, s3_glacier=0, s3_put=2_000, ingestas=4, ingesta_s=300, ingesta_gb=0.5,
                                pred=1_000, pred_s=1.0, pred_gb=1.0, ddb_gb=0.01, athena_q=100, athena_mb=50,
                                ecr_gb=0.5, logs_gb=0.2, dr_gb=0, dr_nuevo_gb=0),
     "Piloto (50 clínicas)": dict(s3_std=200.0, s3_glacier=500, s3_put=100_000, ingestas=4, ingesta_s=300, ingesta_gb=0.5,
