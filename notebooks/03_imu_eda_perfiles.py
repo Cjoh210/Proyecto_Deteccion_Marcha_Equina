@@ -1,12 +1,6 @@
 # %% [markdown]
-# # 03 · Dataset IMU de cojera inducida: EDA, outliers, PCA y perfiles (clustering)
-# **Fuente:** Smit et al., *Kinematic data of the Icelandic horse with induced lameness at walk, trot and tölt*,
-# DataverseNL, doi:10.34894/PEWAK6 (CC-BY-4.0). 22 caballos (10 con cojera anterior inducida y 12 con cojera
-# posterior inducida), medidos antes (BAS) y durante (IND) la inducción, con 16 sensores IMU a 500 Hz.
-#
-# **Preparación (script `src/imu/feature_extraction.py`):** se toman las pruebas a mano, trote en línea recta, y se calculan
-# por zancada métricas de simetría vertical de cabeza, cruz, sacro y tuberosidades coxales. Esta es la ingeniería
-# de características: se pasa de ~50 millones de muestras crudas a ~1.800 zancadas × 30 variables con significado clínico.
+# # 03 · Dataset IMU: EDA, outliers, PCA y clustering
+# Fuente: Smit et al., DataverseNL, doi:10.34894/PEWAK6 (22 caballos, cojera inducida). Entrada: `data/processed/imu_zancadas.csv`, generado con `src/imu/feature_extraction.py`.
 
 # %%
 import warnings
@@ -46,16 +40,6 @@ nul = df[FEATS].isna().mean().mul(100).round(2)
 print("Variables con nulos (%):\n", nul[nul > 0])
 print("\nArchivos sin sensor de cruz:", df.loc[df["cruz_rom_mm"].isna(), "archivo"].unique())
 
-# %% [markdown]
-# **Nulos:** solo las variables de la cruz tienen faltantes (2 %): en una prueba el sensor de la cruz no registró.
-# Es un faltante **por archivo** (no depende del valor), así que se imputa de forma jerárquica: primero con la
-# **mediana del mismo caballo y condición**, que conserva su línea base individual; si el caballo no tiene ese sensor
-# en toda la prueba (caso `ant_G`, basal), se usa la mediana de su experimento y condición. En el modelo de ML la imputación va dentro del *pipeline*
-# para no filtrar información del conjunto de prueba.
-#
-# **Valores imposibles (artefactos):** una zancada de trote dura ~0,5–0,8 s y el desplazamiento vertical del tronco no
-# supera ~150 mm. Valores fuera de esos rangos vienen de transiciones de marcha, tropiezos o fallos de integración.
-
 # %%
 for c in [c for c in FEATS if c.startswith("cruz_")]:
     df[c] = df[c].fillna(df.groupby(["id_caballo", "condicion"])[c].transform("median"))
@@ -76,9 +60,7 @@ clave = ["cabeza_mindiff_mm", "cabeza_maxdiff_mm", "sacro_mindiff_mm", "sacro_ma
 df.groupby(["experimento", "estado"])[clave].median().T.round(2)
 
 # %% [markdown]
-# ### Pruebas estadísticas (por caballo, emparejadas)
-# Las zancadas de un mismo caballo no son independientes. Por eso la prueba correcta se hace a nivel de **caballo**:
-# mediana por caballo y condición, y **Wilcoxon de rangos con signo** (emparejado y no paramétrico).
+# ### Pruebas emparejadas por caballo (Wilcoxon)
 
 # %%
 med = df.groupby(["experimento", "id_caballo", "cojo"])[clave].median().reset_index()
@@ -123,15 +105,6 @@ for ax, (exp, var, tit) in zip(axes, [("anterior", "cabeza_mindiff_mm", "Cojera 
     ax.set_title(tit); ax.set_ylabel(f"Mediana de {var}")
 plt.tight_layout(); plt.savefig(FIG / "imu_pareado_caballos.png"); plt.show()
 
-# %% [markdown]
-# **Lectura ("hacer hablar a los números"):** el patrón coincide con la biomecánica descrita en la literatura veterinaria:
-# - En **cojera anterior**, el caballo "levanta la cabeza" al apoyar el miembro doloroso → se duplica la asimetría
-#   vertical de la **cabeza** (MinDiff), mientras que la pelvis casi no cambia.
-# - En **cojera posterior**, la asimetría aparece en el **sacro** y en la diferencia de movimiento entre tuberosidades
-#   coxales (*hip hike*). La cabeza también cambia un poco (movimiento compensatorio).
-# - La respuesta **no es igual en todos los caballos**: algunos casi no cambian. Eso anticipa la dificultad de
-#   generalizar a caballos nuevos y justifica perfilar a los individuos (sección 6).
-
 # %%
 plt.figure(figsize=(10, 8))
 corr = df[FEATS].corr(method="spearman")
@@ -143,9 +116,7 @@ alta = corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack()
 print("Pares con |rho| > 0.85 (redundancia):\n", alta[alta.abs() > 0.85].round(2))
 
 # %% [markdown]
-# ## 4. Outliers estadísticos: univariados (IQR) y multivariados (Isolation Forest)
-# Los artefactos físicos ya se quitaron. Los outliers que quedan son **plausibles** y se analizan, no se borran:
-# ¿son zancadas especialmente cojas, caballos atípicos o ruido?
+# ## 4. Outliers: IQR e Isolation Forest
 
 # %%
 Q1, Q3 = df[clave].quantile(.25), df[clave].quantile(.75)
@@ -162,15 +133,6 @@ pd.crosstab([df.experimento, df.estado], df.outlier_iforest, normalize="index").
 top_h = df[df.outlier_iforest].groupby("id_caballo").size().sort_values(ascending=False)
 print("Caballos con más zancadas anómalas:\n", top_h.head(6))
 df[df.outlier_iforest].groupby("estado")[clave].median().T.round(1)
-
-# %% [markdown]
-# **Interpretación:**
-# - El criterio IQR marca ~1 de cada 4 zancadas en al menos una variable: con 8 variables asimétricas (cola larga)
-#   es esperable, y por eso se prefiere un criterio **multivariado** (Isolation Forest, 5 %).
-# - Las anomalías multivariadas son casi el doble de frecuentes en la **cojera posterior inducida** (7,3 % frente a 4,1 %)
-#   y tienen asimetrías mayores y harmonic ratio más bajo: buena parte del "outlier" es **la señal clínica**, no ruido.
-# - Un solo caballo (`pos_B`) acumula ~25 % de las anomalías: es un **perfil individual atípico**, con movimiento muy
-#   irregular incluso en la línea base. Se conserva, pero se vigila su efecto en la validación por caballo.
 
 # %% [markdown]
 # ## 5. PCA: estructura del espacio de características
@@ -200,8 +162,8 @@ plt.tight_layout(); plt.savefig(FIG / "imu_pca.png"); plt.show()
 load.assign(abs_sum=load.abs().sum(axis=1)).sort_values("abs_sum", ascending=False).head(8).round(2)
 
 # %% [markdown]
-# ## 6. Clustering: perfiles de marcha
-# ### 6.1 K-Means sobre las componentes principales (nivel zancada)
+# ## 6. Clustering
+# ### 6.1 K-Means sobre las componentes principales
 
 # %%
 Zk = Z[:, :n90]
@@ -214,9 +176,7 @@ display(pd.crosstab([df.experimento, df.estado], df.perfil_marcha, normalize="in
 df.groupby("perfil_marcha")[clave].median().round(1)
 
 # %% [markdown]
-# ### 6.2 Clustering jerárquico de caballos (perfil individual por condición)
-# Cada punto es un **caballo en una condición** (mediana de sus zancadas). Este nivel es el que interesa en clínica:
-# ¿qué caballos se parecen entre sí y cuáles se separan con la cojera?
+# ### 6.2 Clustering jerárquico de caballos (mediana por condición)
 
 # %%
 perf = df.groupby(["id_caballo", "estado"])[clave].median()
@@ -227,12 +187,6 @@ plt.title("Dendrograma de perfiles caballo-condición (Ward) · S = sano, C = co
 plt.savefig(FIG / "imu_dendrograma_caballos.png"); plt.show()
 perf["grupo_jerarquico"] = fcluster(Zh, 3, criterion="maxclust")
 pd.crosstab(perf.index.get_level_values("estado"), perf["grupo_jerarquico"])
-
-# %% [markdown]
-# **Lectura:** el clustering, que no conoce las etiquetas, separa parcialmente lo sano de lo cojo. Los grupos que mezclan
-# ambas condiciones corresponden a caballos con una asimetría basal alta (sanos "asimétricos" por naturaleza) o con una
-# respuesta débil a la inducción. Para el sistema esto implica que **un umbral fijo no basta**: conviene comparar a cada
-# caballo con su propia línea base, y el modelo supervisado debe validarse con caballos que no haya visto.
 
 # %%
 df.to_csv(OUT / "imu_zancadas_limpio.csv", index=False)

@@ -1,14 +1,6 @@
 # %% [markdown]
-# # 06 · Regresión: ¿qué explica el impacto de un artículo?
-# Complemento del pipeline de minería (notebook 01–02) con los modelos de regresión de la asignatura de ML.
-#
-# **Pregunta:** a partir de las características de un artículo (año, colaboración, tema, acceso abierto…),
-# ¿se puede estimar su impacto, medido como citas por año? Responderla ayuda a entender qué tipo de trabajo
-# tiene más influencia en el área y, por tanto, qué enfoque conviene para el proyecto.
-#
-# **Variable objetivo:** `log(1 + citas_por_anio)`. Se usa el logaritmo porque las citas tienen una cola muy larga.
-# **Modelos:** regresión lineal, polinomial, Ridge, Lasso y Elastic Net (con Grid Search), comparados con un
-# Random Forest como referencia no lineal.
+# # 06 · Regresión del impacto de los artículos
+# Objetivo: `log(1 + citas_por_anio)`. Modelos: lineal, polinomial, Ridge, Lasso y Elastic Net con Grid Search, y Random Forest como referencia.
 
 # %%
 import warnings
@@ -35,7 +27,7 @@ plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 200, "savefig.bbox": "tig
 SEED = 42
 
 df = pd.read_csv(OUT / "articulos_con_clusters.csv")
-df = df[df["anio"] <= 2024].copy()  # los trabajos de 2025-2026 aún no han tenido tiempo de acumular citas
+df = df[df["anio"] <= 2024].copy()  # 2025-2026 aún sin citas acumuladas
 df["y"] = np.log1p(df["citas_por_anio"])
 print("Artículos para regresión:", len(df))
 
@@ -48,9 +40,7 @@ df["n_paises"] = df["n_paises"].fillna(0)
 X, y = df[NUM + BIN + CAT], df["y"]
 
 # %% [markdown]
-# **Decisiones:** se excluyen 2025–2026 porque un artículo reciente tiene pocas citas por falta de tiempo, no por bajo
-# impacto. No se usan variables que contengan la respuesta (citas, FWCI, flags de outlier) para evitar fuga de información.
-# Partición 80/20 y validación cruzada de 5 particiones en entrenamiento.
+# Se excluyen 2025–2026 por tener pocas citas acumuladas.
 
 # %%
 X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=SEED)
@@ -105,8 +95,6 @@ plt.tight_layout(); plt.savefig(FIG / "reg_comparacion.png"); plt.show()
 
 # %% [markdown]
 # ## Lasso como selección de variables
-# Lasso lleva a cero los coeficientes poco útiles. Los que sobreviven indican qué características se asocian con un
-# mayor o menor impacto (manteniendo las demás constantes; es asociación, no causalidad).
 
 # %%
 lasso = mejores["Lasso"]
@@ -120,20 +108,6 @@ plt.axvline(0, c="black", lw=.8)
 plt.title("Coeficientes de Lasso (variables estandarizadas)"); plt.xlabel("Efecto sobre log(1 + citas/año)")
 plt.savefig(FIG / "reg_lasso_coeficientes.png"); plt.show()
 coef.round(3)
-
-# %% [markdown]
-# ## Lectura
-# - El impacto de un artículo es **difícil de predecir** solo con sus metadatos. Los modelos lineales explican cerca del
-#   40 % de la variación en prueba; la regresión polinomial regularizada llega a ~50 % y el Random Forest a ~55 %, porque
-#   capturan interacciones, por ejemplo entre tema y tipo de documento.
-# - Ridge, Lasso y Elastic Net rinden igual que la regresión lineal: con 3.000 artículos y 29 variables no hay sobreajuste
-#   que corregir, y la regularización sirve sobre todo para **seleccionar variables** (Lasso).
-# - **Modelo elegido:** Lasso para interpretar, por su simplicidad, y Random Forest si el objetivo fuera solo predecir.
-# - Lasso confirma lo que mostraron el clustering y los outliers: los perfiles de **estimación de pose**, **detección en
-#   bovinos** y **visión por computador** se asocian con más citas por año, igual que la **colaboración** (más países y
-#   autores) y las revisiones. Los perfiles clínicos clásicos se asocian con menos impacto anual. El acceso abierto
-#   aporta un efecto positivo pequeño, y el año es negativo porque los trabajos recientes aún están acumulando citas.
-# - Para el proyecto, esto refuerza la decisión de trabajar con visión por computador y estimación de pose.
 
 # %%
 res.to_csv(OUT / "regresion_resultados.csv", index=False)

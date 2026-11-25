@@ -1,15 +1,6 @@
 # %% [markdown]
-# # 04 · Machine Learning: clasificación sano vs. cojo por zancada
-# Fase CRISP-DM: *Modelado* y *Evaluación*. Entrada: `data/processed/imu_zancadas_limpio.csv` (notebook 03).
-#
-# **Pregunta predictiva:** dadas las métricas de simetría de una zancada de trote, ¿está el caballo cojo?
-#
-# **Decisión metodológica clave: validación agrupada por caballo.** Las zancadas de un mismo caballo se parecen mucho
-# entre sí. Si se mezclaran en entrenamiento y prueba, el modelo "reconocería al caballo" y la métrica saldría inflada.
-# En un caso real el sistema evaluará **caballos que nunca vio**, así que:
-# - *Hold-out*: 5 caballos completos (≈ 23 %) se reservan como **prueba final**.
-# - Selección de modelo e hiperparámetros: **GroupKFold (5)** dentro de los 17 caballos de entrenamiento.
-# - Robustez: **Leave-One-Horse-Out** sobre los 22 caballos para el modelo final.
+# # 04 · Clasificación sano vs. cojo por zancada
+# Entrada: `data/processed/imu_zancadas_limpio.csv`. Validación agrupada por caballo: 5 caballos de prueba, GroupKFold (5) para elegir modelo y Leave-One-Horse-Out para robustez.
 
 # %%
 import time
@@ -65,10 +56,8 @@ print(f"Train: {len(X_tr)} zancadas ({g_tr.nunique()} caballos) | Test: {len(X_t
 cv = GroupKFold(n_splits=5)
 
 # %% [markdown]
-# ## 2. Modelos base y ensembles con el mismo pipeline
-# `SimpleImputer(mediana) → StandardScaler → modelo`. El escalado se ajusta solo con los datos de entrenamiento de
-# cada fold, así que no hay fuga de información. Métrica principal: **ROC-AUC** (no depende del umbral y es estable
-# con clases casi balanceadas). También se reportan F1 y exactitud balanceada.
+# ## 2. Modelos base y ensembles
+# Pipeline: imputación por mediana, escalado y modelo. Métrica principal: ROC-AUC.
 
 # %%
 def pipe(model):
@@ -94,10 +83,7 @@ base.round(3)
 
 # %% [markdown]
 # ## 3. Optimización de hiperparámetros
-# - **Grid Search** para Random Forest y Gradient Boosting (espacios pequeños y discretos).
-# - **Random Search** para SVM (C y gamma son continuos en escala logarítmica, donde una búsqueda aleatoria es más
-#   eficiente que una grilla).
-# Siempre con GroupKFold por caballo.
+# Grid Search para Random Forest y Gradient Boosting; Random Search para SVM.
 
 # %%
 busquedas = {
@@ -143,8 +129,7 @@ fig, axes = plt.subplots(1, 2, figsize=(13, 4.8))
 for nombre, p in probas.items():
     RocCurveDisplay.from_predictions(y_te, p, name=nombre, ax=axes[0])
 axes[0].plot([0, 1], [0, 1], "--", c="gray"); axes[0].set_title("Curvas ROC · caballos de prueba")
-# Modelo final: el mejor ENSEMBLE según la validación cruzada (requisito R3). La SVM queda muy cerca en CV
-# (diferencia menor que la desviación entre folds), pero el ensemble se puede explicar con SHAP de forma exacta (TreeSHAP).
+# Modelo final: el mejor ensemble en validación cruzada
 mejor = opt[opt.modelo.isin(["Random Forest", "Gradient Boosting"])].iloc[0]["modelo"]
 print("Modelo final seleccionado por CV:", mejor)
 cm = confusion_matrix(y_te, (probas[mejor] >= .5).astype(int))
@@ -154,9 +139,8 @@ plt.tight_layout(); plt.savefig(FIG / "ml_roc_confusion.png"); plt.show()
 print(classification_report(y_te, (probas[mejor] >= .5).astype(int), target_names=["Sano", "Cojo"]))
 
 # %% [markdown]
-# ### Decisión a nivel de prueba (trial)
-# Clínicamente no se diagnostica una zancada sino una prueba de trote completa. Se promedia la probabilidad de todas
-# las zancadas de cada prueba (caballo × condición) y se clasifica la prueba.
+# ### Decisión por prueba de trote
+# Promedio de la probabilidad de las zancadas de cada prueba.
 
 # %%
 te_df = df.iloc[te][["id_caballo", "experimento", "condicion", "cojo"]].copy()
@@ -175,7 +159,7 @@ trial.round(3)
 final = clone(busquedas[mejor].best_estimator_)
 logo = LeaveOneGroupOut()
 r = cross_validate(final, X, y, groups=g, cv=logo, scoring={"bal_acc": "balanced_accuracy"}, n_jobs=-1, return_estimator=False)
-# AUC por caballo no está definida (una sola clase si falta una condición); se calcula AUC global con predicciones fuera de fold
+# AUC global con predicciones fuera de fold
 from sklearn.model_selection import cross_val_predict
 p_oof = cross_val_predict(final, X, y, groups=g, cv=logo, method="predict_proba", n_jobs=-1)[:, 1]
 df["p_oof"] = p_oof
@@ -212,12 +196,6 @@ imp = pd.DataFrame({"variable": FEATS, "perm_importancia": pi.importances_mean, 
                     "shap_abs_medio": np.abs(sv).mean(axis=0)}).sort_values("shap_abs_medio", ascending=False)
 imp.head(12).round(4)
 
-# %% [markdown]
-# **Lectura:** las variables que más pesan en el modelo son las mismas que la biomecánica señala como marcadores de
-# cojera: la asimetría vertical de la cabeza (MinDiff y harmonic ratio) para la cojera anterior y la del sacro / tuberosidades
-# coxales para la posterior. Que el modelo "piense" como un veterinario da confianza para pasar a la fase de visión por
-# computador, donde estas mismas señales se estimarán desde video con keypoints de cabeza, cruz y pelvis.
-
 # %%
 import joblib, json
 joblib.dump(busquedas[mejor].best_estimator_, MODELS / "modelo_cojera.joblib")
@@ -226,15 +204,3 @@ json.dump({"modelo": mejor, "features": FEATS, "caballos_test": sorted(g_te.uniq
            "roc_auc_loho": float(roc_auc_score(y, p_oof))}, open(MODELS / "modelo_cojera_meta.json", "w"), indent=2)
 base.to_csv(OUT / "ml_resultados_cv.csv", index=False); res_test.to_csv(OUT / "ml_resultados_test.csv", index=False)
 print("Modelo guardado en models/modelo_cojera.joblib")
-
-# %% [markdown]
-# ## 7. Conclusiones y siguientes pasos
-# - Con variables de **una sola zancada** y validación con **caballos no vistos**, el modelo detecta la cojera inducida
-#   mejor que el azar (ROC-AUC ≈ 0,71 tanto en los 5 caballos de prueba como en Leave-One-Horse-Out; 7 de 9 pruebas de trote bien clasificadas al promediar sus zancadas). Es un rendimiento **moderado**, y es
-#   honesto: la cojera inducida es leve y algunos caballos son asimétricos incluso sanos.
-# - La validación agrupada es la decisión más importante del modelado: con una partición aleatoria por zancada las métricas
-#   saldrían infladas, porque el modelo reconocería a cada caballo.
-# - **Siguientes pasos:** (1) normalizar cada caballo frente a una sesión de referencia propia (seguimiento
-#   longitudinal), (2) usar asimetrías con signo, identificando el miembro con los sensores de casco, (3) agregar
-#   modelos de regresión para estimar el grado de asimetría. El modelo final ya se sirve como API en AWS (`src/cloud/lambda_inferencia`).
-

@@ -1,12 +1,6 @@
 # %% [markdown]
-# # 01 · Corpus científico: limpieza y Análisis Exploratorio (EDA)
-# **Proyecto integrador – Detección de cojera equina** · Carlos Barrera
-#
-# Fase CRISP-DM: *Comprensión de los datos* y *Preparación de los datos*.
-#
-# Fuente: API REST de OpenAlex (`src/scraping/openalex_scraper.py`), 5 consultas temáticas
-# (cojera equina, marcha equina, sensores inerciales, visión/pose animal y cojera con ML en otras especies).
-# Cada consulta trae los ~1.500 registros más relevantes.
+# # 01 · Corpus científico: limpieza y EDA
+# Entrada: `data/raw/openalex_works_raw.csv` (5 consultas a la API de OpenAlex). Salida: `data/processed/articulos_limpio.csv`.
 
 # %%
 import re
@@ -47,25 +41,8 @@ print("Registros duplicados por ID (mismo artículo en varias consultas):",
 diag
 
 # %% [markdown]
-# **Lectura:** el resumen falta en ~27 % de los registros (OpenAlex no puede redistribuir algunos
-# resúmenes por derechos de autor), y país/institución faltan en ~30 %. El FWCI (impacto normalizado por campo)
-# falta en ~22 %, sobre todo en trabajos muy recientes o muy antiguos. Hay ~600 duplicados porque un mismo artículo
-# puede responder a varias consultas: esa coincidencia es información útil (multi-temática), así que se conserva
-# como variable en vez de descartarla.
-
-# %% [markdown]
 # ## 2. Limpieza y transformación
-# Decisiones (cada una justificada):
-# 1. **Fusionar duplicados por ID** conservando la lista de consultas → variable `n_consultas` (interdisciplinariedad).
-# 2. **Excluir tipos no científicos o redundantes**: `peer-review` (informes de revisión), `erratum`, `paratext`, `letter`, `editorial`.
-# 3. **Excluir retractados** (1 registro): no son evidencia válida.
-# 4. **Ventana temporal 1990–2026**: antes de 1990 casi no hay producción comparable y los años > 2026 son
-#    fechas de publicación anticipada (*online first*); se recortan para no distorsionar las tendencias.
-# 5. **Duplicados por título normalizado** (preprint + versión publicada): se conserva el de más citas.
-# 6. **Nulos**: país → `"Desconocido"`; resumen → se marca `tiene_resumen` y el texto para minería usa título + keywords;
-#    FWCI se deja como NaN (imputarlo inventaría impacto) y se usa solo en análisis con casos completos.
-# 7. **Filtro de pertinencia**: se exige al menos un término del dominio (caballo, cojera, marcha, pose…), porque
-#    palabras como *markerless* también aparecen en genética y traen ruido.
+# Duplicados, tipos no científicos, retractados, ventana 1990–2026 y duplicados por título.
 
 # %%
 df = raw.copy()
@@ -84,13 +61,11 @@ df = df[df["titulo_norm"].str.len() > 10]
 df = df.sort_values("citas", ascending=False).drop_duplicates("titulo_norm")
 log.append(("Tras quitar duplicados por título", len(df)))
 
-# 7. Filtro de pertinencia temática: la palabra "markerless" también se usa en genética
-#    (mutantes sin marcador) y "keypoint" en otras áreas; se exige al menos un término del dominio.
+# 7. Filtro temático: al menos un término del dominio
 _txt = (df["titulo"].fillna("") + " " + df["resumen"].fillna("") + " " + df["keywords"].fillna("")).str.lower()
 DOMINIO = r"horse|equine|equid|pony|lame|gait|locomot|pose estimation|keypoint|posture|kinemat|limb|stride|animal behavio"
 df = df[_txt.str.contains(DOMINIO, regex=True)]
-# "kinematics" también trae estudios de cinemática espermática (semen de sementales): fuera de alcance.
-# Este ruido se descubrió con las reglas de asociación del notebook 02 (regla sperm kinematics → sperm motility, lift ≈ 110).
+# Quita estudios de cinemática espermática
 df = df[~_txt.loc[df.index].str.contains(r"sperm|semen|spermat", regex=True)]
 log.append(("Tras filtro de pertinencia temática", len(df)))
 
@@ -136,11 +111,6 @@ desc = df[num].describe().T
 desc["asimetria"] = df[num].skew()
 desc["curtosis"] = df[num].kurt()
 desc.round(2)
-
-# %% [markdown]
-# Las citas tienen una asimetría muy fuerte (unos pocos artículos concentran la mayoría de citas), lo típico de una
-# distribución de cola pesada en bibliometría. Por eso el análisis usa `log(1+citas)` y `citas_por_anio`, que corrige la
-# ventaja de los artículos viejos.
 
 # %% [markdown]
 # ## 5. Visualizaciones
@@ -195,16 +165,8 @@ plt.title("Correlación de Spearman entre variables numéricas")
 plt.savefig(FIG / "art_correlaciones.png"); plt.show()
 
 # %% [markdown]
-# Se usa Spearman (por rangos) porque las variables no son normales y tienen valores extremos.
-
-# %% [markdown]
-# ## 6. Detección e interpretación de outliers ("hacer hablar a los números")
-# Se combinan dos criterios sobre `citas_por_anio` (impacto ajustado por antigüedad):
-# - **IQR (Tukey)**: valor > Q3 + 1,5·IQR, calculado sobre `log(1+citas_por_anio)`.
-# - **z-score robusto (mediana/MAD)**: |z| > 3,5 (Iglewicz & Hoaglin), menos sensible a la propia cola.
-#
-# Los outliers **no se eliminan**: en bibliometría, los trabajos atípicos son justamente los más influyentes
-# (métodos fundacionales, datasets de referencia). Se marcan y se interpretan.
+# ## 6. Outliers
+# IQR sobre `log(1+citas_por_anio)` y z-score robusto (mediana/MAD). Se marcan, no se eliminan.
 
 # %%
 x = np.log1p(df["citas_por_anio"])

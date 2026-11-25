@@ -1,11 +1,6 @@
 # %% [markdown]
-# # 02 · Corpus científico: ingeniería de texto, clustering y reglas de asociación
-# Fase CRISP-DM: *Modelado (no supervisado)*. Entrada: `data/processed/articulos_limpio.csv` (notebook 01).
-#
-# Preguntas:
-# 1. ¿Qué **líneas de investigación** (perfiles) existen alrededor de la detección de cojera y el análisis de marcha?
-# 2. ¿Qué **combinaciones de conceptos** aparecen juntas con frecuencia (reglas de asociación)?
-# 3. ¿Dónde está el **vacío** que justifica el proyecto?
+# # 02 · Corpus científico: TF-IDF, clustering y reglas de asociación
+# Entrada: `data/processed/articulos_limpio.csv`.
 
 # %%
 import time
@@ -40,11 +35,8 @@ df = df[df["idioma"] == "en"].reset_index(drop=True)   # el vectorizador es en i
 print("Artículos en inglés para minería de texto:", len(df))
 
 # %% [markdown]
-# ## 1. Representación: TF-IDF + reducción con SVD (LSA)
-# - **TF-IDF** (unigramas y bigramas) sobre título + resumen + keywords; se eliminan stopwords en inglés y términos
-#   muy raros (< 5 documentos) o demasiado comunes (> 50 %).
-# - **TruncatedSVD** (análogo del PCA para matrices dispersas) reduce a 100 componentes y luego se normaliza (L2),
-#   así la distancia euclidiana equivale a la similitud coseno. Esta es la ingeniería de características del texto.
+# ## 1. Representación: TF-IDF + SVD
+# Unigramas y bigramas sobre título, resumen y keywords; SVD a 100 componentes y normalización L2.
 
 # %%
 extra_stop = ["horse", "horses", "equine", "study", "results", "using", "used", "use", "based", "conclusion",
@@ -68,10 +60,6 @@ plt.savefig(FIG / "art_svd_varianza.png"); plt.show()
 print(f"Varianza explicada con 100 componentes: {var[-1]*100:.1f} %")
 
 # %% [markdown]
-# En texto la varianza queda muy repartida (miles de términos), así que no se busca un % alto: el objetivo de la SVD
-# es quitar ruido y sinónimos, no reconstruir la matriz completa.
-
-# %% [markdown]
 # ## 2. K-Means: selección de k con codo, silhouette, Calinski-Harabasz y Davies-Bouldin
 
 # %%
@@ -89,11 +77,6 @@ for ax, col, t in zip(axes, ["inercia", "silhouette", "calinski", "davies_bouldi
 plt.tight_layout(); plt.savefig(FIG / "art_kmeans_seleccion_k.png"); plt.show()
 res.to_csv(OUT / "kmeans_seleccion_k.csv", index=False)
 res.round(3)
-
-# %% [markdown]
-# **Criterio de elección:** en texto los valores de silhouette siempre son bajos (los temas se solapan). Se elige el k
-# que equilibra las métricas internas con la **interpretabilidad** de los clusters (que cada grupo tenga un tema
-# claro y que no haya grupos de muy pocos artículos). Se elige k = 8 (ver justificación en la celda siguiente).
 
 # %%
 K = 8
@@ -114,8 +97,6 @@ resumen
 
 # %% [markdown]
 # ### Etiquetado de los perfiles
-# Los nombres se asignan leyendo los términos clave y los títulos más centrales de cada cluster (celda siguiente).
-# Se hace de forma programática por palabras clave dominantes para que sea reproducible.
 
 # %%
 for c in range(K):
@@ -199,16 +180,8 @@ comp = pd.DataFrame({
 comp.round(3)
 
 # %% [markdown]
-# **Lectura:** K-Means y Ward coinciden solo parcialmente (ARI bajo-moderado): los temas se solapan y las fronteras
-# entre perfiles son difusas, algo esperable en literatura científica. DBSCAN muestra un silhouette mayor, pero es
-# engañoso: se calcula sin el ~50 % de artículos que marca como ruido y fragmenta el corpus en decenas de micro-grupos.
-# En alta dimensión las densidades son casi homogéneas, que es el peor caso para DBSCAN. Se conserva **K-Means** porque
-# asigna todos los artículos, tiene el mejor Calinski-Harabasz y da perfiles interpretables.
-
-# %% [markdown]
 # ## 5. Reglas de asociación (Apriori vs FP-Growth)
-# Cada artículo es una **transacción** y sus *keywords* de OpenAlex son los **ítems**. Se conservan las 150 keywords
-# más frecuentes (se quitan "horse/horses/equine", que aparecen casi siempre y no aportan información).
+# Cada artículo es una transacción y sus 150 keywords más frecuentes son los ítems.
 
 # %%
 trans = df["keywords"].fillna("").str.lower().str.split(";").apply(
@@ -245,9 +218,8 @@ plt.title("Reglas de asociación entre keywords (FP-Growth)")
 plt.savefig(FIG / "art_reglas_scatter.png"); plt.show()
 
 # %% [markdown]
-# ## 6. El vacío que justifica el proyecto
-# Se mide cuántos trabajos combinan **caballo + cojera + visión por computador** frente a cada componente por separado,
-# y cuántos tienen autores de Latinoamérica.
+# ## 6. Conteo del vacío
+# Trabajos que combinan caballo, cojera y visión, y cuántos tienen autores de Latinoamérica.
 
 # %%
 t = df["texto"].str.lower()

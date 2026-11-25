@@ -1,11 +1,6 @@
 # %% [markdown]
-# # 05 · Catálogo de datasets públicos: perfilamiento para la fase de visión por computador
-# **Pregunta:** ¿con qué datos públicos se puede entrenar y validar, más adelante, un sistema de visión que detecte
-# cojera en caballos? ¿Qué perfiles de datasets existen y qué vacío queda?
-#
-# **Fuente:** catálogo curado a mano (`data/external/catalogo_datasets.csv`) con 14 datasets encontrados en la
-# revisión del estado del arte. Cada fila tiene la URL de la fuente. Los campos que la fuente no reporta se dejan
-# **vacíos** (no se inventan) y se tratan como faltantes.
+# # 05 · Catálogo de datasets públicos
+# Entrada: `data/external/catalogo_datasets.csv` (14 datasets; los campos sin dato quedan vacíos).
 
 # %%
 from pathlib import Path
@@ -39,11 +34,6 @@ cat["modalidad_grupo"] = np.select(
 cat["log_muestras"] = np.log10(cat["n_muestras"])
 cat["n_keypoints"] = cat["n_keypoints"].fillna(-1)  # -1 = no reportado (se excluye en la distancia)
 cat["apertura"] = np.select([cat.uso_comercial_confirmado == 1, cat.acceso.str.startswith("abierto")], [2, 1], 0)
-
-# %% [markdown]
-# `n_muestras` falta en 3 datasets (secuencias de mocap o registros sin un conteo homogéneo) y los keypoints en 1.
-# Además, las unidades no son comparables (frames, imágenes, pruebas). Por eso se usa la escala log10 y la
-# **distancia de Gower**, que mezcla variables binarias, ordinales y numéricas e ignora los faltantes par a par.
 
 # %%
 def gower(df, num, binar):
@@ -85,9 +75,8 @@ pd.set_option("display.max_colwidth", 200)
 resumen
 
 # %% [markdown]
-# ## 3. Matriz de aptitud para el proyecto
-# Cada dataset se puntúa (0–1) en los criterios que necesita un sistema de **detección de cojera equina desde video**.
-# Los pesos reflejan la prioridad del proyecto: la etiqueta de cojera y la especie pesan más.
+# ## 3. Matriz de aptitud
+# Puntaje de 0 a 1 por criterio; la etiqueta de cojera y la especie pesan más.
 
 # %%
 criterios = pd.DataFrame({k: v.to_numpy() for k, v in {
@@ -109,7 +98,7 @@ plt.title("Aptitud de cada dataset para detectar cojera equina por visión"); pl
 plt.savefig(FIG / "cat_matriz_aptitud.png"); plt.show()
 
 # %% [markdown]
-# ## 4. El vacío ("hacer hablar al catálogo")
+# ## 4. Conteo del vacío
 
 # %%
 vacio = pd.Series({
@@ -120,20 +109,6 @@ vacio = pd.Series({
     "…con cojera y licencia comercial": int((cat.incluye_caballo & cat.etiqueta_cojera & (cat.uso_comercial_confirmado == 1)).sum()),
 })
 vacio.to_frame("n")
-
-# %% [markdown]
-# **Conclusiones del perfilamiento:**
-# 1. Salen cuatro perfiles: **(P1) mocap 3D + video multivista de caballos** (PFERD, Zúrich), alta precisión y pocos
-#    individuos; **(P2) sensores IMU con etiqueta de cojera** (caballo, vaca, oveja), pocos registros y etiqueta clínica;
-#    **(P3) imágenes estáticas de pose** (AP-10K, Animal-Pose, sintéticos), gran escala sin información temporal; y
-#    **(P4) video con keypoints** (Horse-30, APT-36K, APTv2, Animal Kingdom, TigDog), temporal y multiespecie, sin cojera.
-# 2. **Ningún dataset público combina video de caballos con una etiqueta de cojera.** El único con video y cojera (Zúrich)
-#    no está disponible para descargar. El único dataset de caballo con cojera y acceso abierto es de sensores IMU, y es
-#    justo el que se usa en este proyecto.
-# 3. **Estrategia propuesta para la fase de visión:** (a) preentrenar el detector de keypoints con AP-10K o Horse-30;
-#    (b) usar PFERD (video sincronizado con mocap) para validar que los keypoints estimados reproducen el desplazamiento
-#    vertical de cabeza y pelvis; (c) aplicar el clasificador de cojera entrenado con métricas de simetría (notebook 04)
-#    sobre las trayectorias estimadas desde video. Así, el modelo de ML de este proyecto se reutiliza en la fase de visión.
 
 # %%
 cat.to_csv(OUT / "catalogo_datasets_perfilado.csv", index=False)
