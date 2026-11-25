@@ -1,9 +1,0 @@
-# Copie este archivo como terraform.tfvars y complete los valores. terraform.tfvars está en .gitignore.
-region                   = "us-east-1"
-entorno                  = "dev"
-prefijo                  = "cojera-equina"
-habilitar_dr             = false
-desplegar_api_inferencia = false
-openalex_api_key         = "SU_CLAVE_OPENALEX"
-presupuesto_mensual_usd  = 10
-email_alertas            = "su_correo@ejemplo.com"
